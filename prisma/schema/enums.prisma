@@ -1,0 +1,144 @@
+// ============================================================
+// enums.prisma
+// Shared enums used across multiple models
+// ============================================================
+
+/// Role of a user inside a specific Business (SRS Sec. 30 — User Roles & Permissions)
+enum BusinessRole {
+  OWNER
+  ACCOUNTANT
+  SALES_USER
+  PURCHASE_USER
+  INVENTORY_USER
+}
+
+/// Status of the Tax Bunny SaaS subscription itself (not the client's own invoices)
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+/// Billing cycle for a SaaS plan or a client's recurring invoice (SRS Sec. 25)
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  HALF_YEARLY
+  YEARLY
+  CUSTOM
+}
+
+enum GstRegistrationType {
+  REGULAR
+  COMPOSITION
+  UNREGISTERED
+  SEZ
+  CASUAL
+  NON_RESIDENT
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+}
+
+enum GstSupplyType {
+  B2B
+  B2C
+  EXPORT
+  EXEMPT
+  NIL_RATED
+  NON_GST
+  REVERSE_CHARGE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SAVED
+  PRINTED
+  CANCELLED
+}
+
+enum PaymentMode {
+  CASH
+  BANK
+  UPI
+  CARD
+  CHEQUE
+  CREDIT
+  OTHER
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+/// Direction of a party-ledger entry (SRS Sec. 14)
+enum LedgerEntryType {
+  DEBIT
+  CREDIT
+}
+
+/// Types of stock movement (SRS Sec. 13 / Sec. 16)
+enum StockMovementType {
+  OPENING_STOCK
+  PURCHASE
+  SALES
+  SALES_RETURN
+  PURCHASE_RETURN
+  STOCK_ADJUSTMENT
+  DAMAGE
+  WASTAGE
+  STOCK_TRANSFER_IN
+  STOCK_TRANSFER_OUT
+  PRODUCTION_CONSUMPTION
+  PRODUCTION_OUTPUT
+}
+
+enum ExpenseCategory {
+  RENT
+  ELECTRICITY
+  INTERNET
+  SALARY
+  TRAVEL
+  ADVERTISEMENT
+  OFFICE_EXPENSES
+  REPAIRS_MAINTENANCE
+  OTHER
+}
+
+enum AccountType {
+  CASH
+  BANK
+  CUSTOMER
+  SUPPLIER
+  SALES
+  PURCHASE
+  EXPENSE
+  INCOME
+  INPUT_GST
+  OUTPUT_GST
+  OTHER
+}
+
+enum NotificationType {
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
+  INVOICE_GENERATED
+  INVOICE_OVERDUE
+  LOW_STOCK
+  SUBSCRIPTION_EXPIRY
+  SYSTEM_ALERT
+}
+
+enum NotificationChannel {
+  IN_APP
+  WHATSAPP
+  EMAIL
+  SMS
+}

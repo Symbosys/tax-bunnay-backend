@@ -1,0 +1,29 @@
+// ============================================================
+// auditlog.prisma
+// Audit Trail (SRS Sec. 31) — records important financial and
+// operational changes across the system, e.g.
+// "Invoice Edited: Previous Amount 10,000 -> Updated Amount 12,000"
+// ============================================================
+
+model AuditLog {
+  id           String   @id @default(cuid())
+
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id])
+
+  entityType   String   // "INVOICE" | "PURCHASE" | "PAYMENT" | "RECEIPT" | "STOCK" | "CUSTOMER" | "SUPPLIER" | "PRODUCT" | "LEDGER" | "MASTER_DATA"
+  entityId     String
+  action       String   // "CREATE" | "UPDATE" | "DELETE" | "CANCEL" | "APPROVE"
+
+  previousData Json?
+  updatedData  Json?
+
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  @@index([businessId, entityType, entityId])
+  @@map("audit_logs")
+}

@@ -1,0 +1,29 @@
+// ============================================================
+// notification.prisma
+// Notifications & Reminders (SRS Sec. 35, Sec. 36) — Payment
+// Due, Payment Received, Invoice Overdue, Low Stock,
+// Subscription Expiry, etc. across WhatsApp / Email / In-App.
+// ============================================================
+
+model Notification {
+  id          String              @id @default(cuid())
+
+  businessId  String
+  business    Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  type        NotificationType
+  channel     NotificationChannel @default(IN_APP)
+
+  title       String
+  message     String
+
+  referenceType String?           // "INVOICE" | "PRODUCT" | "SUBSCRIPTION" ...
+  referenceId   String?
+
+  isRead      Boolean             @default(false)
+  sentAt      DateTime?
+  createdAt   DateTime            @default(now())
+
+  @@index([businessId, isRead])
+  @@map("notifications")
+}

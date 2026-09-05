@@ -1,0 +1,47 @@
+// ============================================================
+// customer.prisma
+// Customer & Party Management (SRS Sec. 5)
+// ============================================================
+
+model Customer {
+  id              String    @id @default(cuid())
+
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name            String
+  customerType    PartyType @default(CUSTOMER)
+  isRegistered    Boolean   @default(true) // registered vs unregistered GST customer
+
+  gstin           String?
+  pan             String?
+
+  mobileNumber    String?
+  email           String?
+
+  billingAddress  String?
+  shippingAddress String?
+  state           String?
+  stateCode       String?
+
+  creditLimit     Decimal?  @db.Decimal(12, 2)
+  creditPeriodDays Int?
+  openingBalance  Decimal   @default(0) @db.Decimal(12, 2)
+
+  customerGroup   String?
+  priceList       String?
+  notes           String?
+
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  invoices        Invoice[]
+  receipts        Receipt[]
+  ledgerEntries   LedgerEntry[]
+  creditNotes     CreditNote[]
+  recurringProfiles RecurringInvoiceProfile[]
+
+  @@index([businessId])
+  @@map("customers")
+}

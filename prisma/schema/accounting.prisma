@@ -1,0 +1,66 @@
+// ============================================================
+// accounting.prisma
+// Advanced Accounting — Phase 3 (SRS Sec. 22).
+// Chart of Accounts + double-entry Journal, which backs the
+// Day Book, Cash Book, Bank Book, Trial Balance, P&L and
+// Balance Sheet reports.
+// ============================================================
+
+model Account {
+  id           String        @id @default(cuid())
+
+  businessId   String
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name         String        // e.g. "HDFC Bank", "Sales Account", "Output CGST"
+  accountType  AccountType
+  openingBalance Decimal     @default(0) @db.Decimal(14, 2)
+
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  journalLines JournalLine[]
+  services     Service[]
+  expenses     Expense[]
+
+  @@index([businessId])
+  @@map("accounts")
+}
+
+/// A balanced double-entry transaction (Day Book entry)
+model JournalEntry {
+  id           String        @id @default(cuid())
+
+  businessId   String
+
+  entryDate    DateTime      @default(now())
+  narration    String?
+
+  referenceType String?      // "INVOICE" | "PURCHASE" | "PAYMENT" | "RECEIPT" | "EXPENSE" | "MANUAL"
+  referenceId   String?
+
+  createdAt    DateTime      @default(now())
+
+  lines        JournalLine[]
+
+  @@index([businessId, entryDate])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  accountId      String
+  account        Account      @relation(fields: [accountId], references: [id])
+
+  debitAmount    Decimal      @default(0) @db.Decimal(14, 2)
+  creditAmount   Decimal      @default(0) @db.Decimal(14, 2)
+
+  @@index([journalEntryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}

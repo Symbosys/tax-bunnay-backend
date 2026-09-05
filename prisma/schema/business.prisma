@@ -1,0 +1,77 @@
+// ============================================================
+// business.prisma
+// Company / Business Setup (SRS Sec. 4).
+// This is the tenant record — every Customer, Product, Invoice
+// etc. belongs to exactly one Business. A single User (login)
+// can own or be a member of multiple Businesses.
+// ============================================================
+
+model Business {
+  id                    String              @id @default(cuid())
+
+  ownerId               String
+  owner                 User                @relation("BusinessOwner", fields: [ownerId], references: [id])
+
+  businessName          String
+  legalName             String?
+  tradeName             String?
+
+  gstin                 String?
+  pan                   String?
+  tan                   String?
+  cinOrLlpin            String?
+
+  businessAddress       String?
+  billingAddress        String?
+  shippingAddress       String?
+  state                 String?
+  pinCode               String?
+
+  email                 String?
+  mobileNumber          String?
+
+  financialYearStart    DateTime?
+  booksStartingDate     DateTime?
+  gstRegistrationType   GstRegistrationType @default(REGULAR)
+
+  logoUrl               String?
+
+  bankAccountName       String?
+  bankAccountNumber     String?
+  bankIfsc              String?
+  bankName              String?
+  upiId                 String?
+
+  isActive              Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  members               BusinessUser[]
+  subscription          Subscription?
+
+  customers             Customer[]
+  suppliers             Supplier[]
+  products              Product[]
+  services               Service[]
+  warehouses            Warehouse[]
+  invoiceSeries         InvoiceSeries[]
+  invoices              Invoice[]
+  recurringProfiles     RecurringInvoiceProfile[]
+  purchases             Purchase[]
+  payments              Payment[]
+  receipts              Receipt[]
+  ledgerEntries         LedgerEntry[]
+  stockMovements        StockMovement[]
+  expenses              Expense[]
+  creditNotes           CreditNote[]
+  debitNotes            DebitNote[]
+  accounts              Account[]
+  billsOfMaterial       BillOfMaterial[]
+  productionOrders      ProductionOrder[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  gstReturns            GstReturn[]
+  gstPayments           GstPayment[]
+
+  @@map("businesses")
+}

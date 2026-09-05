@@ -1,0 +1,47 @@
+// ============================================================
+// ledger.prisma
+// Party Ledger (SRS Sec. 14) — a running Debit/Credit statement
+// per Customer or Supplier, generated from invoices, purchases,
+// payments and receipts.
+// ============================================================
+
+model LedgerEntry {
+  id              String          @id @default(cuid())
+
+  businessId      String
+  business        Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  customerId      String?
+  customer        Customer?       @relation(fields: [customerId], references: [id])
+
+  supplierId      String?
+  supplier        Supplier?       @relation(fields: [supplierId], references: [id])
+
+  entryDate       DateTime        @default(now())
+  particulars     String
+  entryType       LedgerEntryType
+
+  debitAmount     Decimal         @default(0) @db.Decimal(14, 2)
+  creditAmount    Decimal         @default(0) @db.Decimal(14, 2)
+  runningBalance  Decimal         @default(0) @db.Decimal(14, 2)
+
+  referenceNumber String?
+
+  invoiceId       String?
+  invoice         Invoice?        @relation(fields: [invoiceId], references: [id])
+
+  purchaseId      String?
+  purchase        Purchase?       @relation(fields: [purchaseId], references: [id])
+
+  paymentId       String?
+  payment         Payment?        @relation(fields: [paymentId], references: [id])
+
+  receiptId       String?
+  receipt         Receipt?        @relation(fields: [receiptId], references: [id])
+
+  createdAt       DateTime        @default(now())
+
+  @@index([businessId, customerId])
+  @@index([businessId, supplierId])
+  @@map("ledger_entries")
+}

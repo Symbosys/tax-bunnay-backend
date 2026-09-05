@@ -1,0 +1,74 @@
+// ============================================================
+// manufacturing.prisma
+// Manufacturing Management — Phase 3 (SRS Sec. 24)
+// Bill of Materials -> Production Order -> Material Consumption
+// -> Finished Goods, each stage writing StockMovement rows.
+// ============================================================
+
+model BillOfMaterial {
+  id                String            @id @default(cuid())
+
+  businessId        String
+  business          Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name              String
+  finishedProductId String
+  outputQuantity    Decimal           @default(1) @db.Decimal(12, 3)
+
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  components        BomItem[]
+  productionOrders  ProductionOrder[]
+
+  @@index([businessId])
+  @@map("bill_of_materials")
+}
+
+/// Raw materials required per unit of finished product
+model BomItem {
+  id           String         @id @default(cuid())
+
+  bomId        String
+  bom          BillOfMaterial @relation(fields: [bomId], references: [id], onDelete: Cascade)
+
+  rawMaterialProductId String
+  rawMaterial          Product @relation(fields: [rawMaterialProductId], references: [id])
+
+  quantityRequired Decimal    @db.Decimal(12, 3)
+
+  @@index([bomId])
+  @@map("bom_items")
+}
+
+model ProductionOrder {
+  id                  String    @id @default(cuid())
+
+  businessId          String
+  business            Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  bomId               String
+  bom                 BillOfMaterial @relation(fields: [bomId], references: [id])
+
+  finishedProductId   String
+  finishedProduct     Product   @relation("FinishedProduct", fields: [finishedProductId], references: [id])
+
+  warehouseId         String
+
+  plannedQuantity     Decimal   @db.Decimal(12, 3)
+  producedQuantity    Decimal   @default(0) @db.Decimal(12, 3)
+  wastageQuantity     Decimal   @default(0) @db.Decimal(12, 3)
+  scrapQuantity       Decimal   @default(0) @db.Decimal(12, 3)
+
+  productionCost      Decimal?  @db.Decimal(14, 2)
+
+  status              String    @default("PLANNED") // PLANNED | IN_PROGRESS | COMPLETED | CANCELLED
+
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+
+  @@index([businessId])
+  @@map("production_orders")
+}

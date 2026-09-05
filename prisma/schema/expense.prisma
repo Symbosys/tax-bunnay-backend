@@ -1,0 +1,31 @@
+// ============================================================
+// expense.prisma
+// Expense Management (SRS Sec. 21)
+// ============================================================
+
+model Expense {
+  id              String          @id @default(cuid())
+
+  businessId      String
+  business        Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  category        ExpenseCategory @default(OTHER)
+  expenseDate     DateTime        @default(now())
+  vendorOrPayee   String?
+
+  amount          Decimal         @db.Decimal(12, 2)
+  gstAmount       Decimal         @default(0) @db.Decimal(12, 2)
+  paymentMode     PaymentMode     @default(CASH)
+
+  attachmentUrl   String?
+  notes           String?
+
+  accountId       String?
+  account         Account?        @relation(fields: [accountId], references: [id])
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([businessId])
+  @@map("expenses")
+}

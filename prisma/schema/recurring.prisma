@@ -1,0 +1,36 @@
+// ============================================================
+// recurring.prisma
+// Recurring & Subscription Billing (SRS Sec. 25) — this is the
+// Business's OWN recurring billing to ITS customers (e.g. an
+// AMC provider billing a client monthly). Not to be confused
+// with the Tax Bunny SaaS subscription in subscription.prisma.
+// ============================================================
+
+model RecurringInvoiceProfile {
+  id                String       @id @default(cuid())
+
+  businessId        String
+  business          Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  customerId        String
+  customer          Customer     @relation(fields: [customerId], references: [id])
+
+  billingCycle      BillingCycle @default(MONTHLY)
+  customFrequencyDays Int?
+
+  subscriptionStartDate DateTime
+  subscriptionEndDate   DateTime?
+  nextRenewalDate       DateTime
+  expiryReminderDays    Int?      @default(7)
+
+  templateNotes     String?
+  isActive          Boolean      @default(true)
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  generatedInvoices Invoice[]
+
+  @@index([businessId, customerId])
+  @@map("recurring_invoice_profiles")
+}

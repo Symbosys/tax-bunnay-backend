@@ -1,0 +1,75 @@
+// ============================================================
+// payment.prisma
+// Payment & Receipt Management (SRS Sec. 13) — kept separate
+// from invoices/purchases. One receipt can be allocated across
+// one or multiple invoices via ReceiptAllocation.
+// ============================================================
+
+/// Money paid OUT to a Supplier
+model Payment {
+  id              String         @id @default(cuid())
+
+  businessId      String
+  business        Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  supplierId      String
+  supplier        Supplier       @relation(fields: [supplierId], references: [id])
+
+  purchaseId      String?
+  purchase        Purchase?      @relation(fields: [purchaseId], references: [id])
+
+  amount          Decimal        @db.Decimal(14, 2)
+  paymentDate     DateTime       @default(now())
+  paymentMode     PaymentMode    @default(BANK)
+  referenceNumber String?
+  notes           String?
+
+  createdAt       DateTime       @default(now())
+
+  ledgerEntries   LedgerEntry[]
+
+  @@index([businessId, supplierId])
+  @@map("payments")
+}
+
+/// Money received IN from a Customer, optionally split across invoices
+model Receipt {
+  id              String              @id @default(cuid())
+
+  businessId      String
+  business        Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  customerId      String
+  customer        Customer            @relation(fields: [customerId], references: [id])
+
+  amount          Decimal             @db.Decimal(14, 2)
+  receiptDate     DateTime            @default(now())
+  paymentMode     PaymentMode         @default(BANK)
+  referenceNumber String?
+  notes           String?
+
+  createdAt       DateTime            @default(now())
+
+  allocations     ReceiptAllocation[]
+  ledgerEntries   LedgerEntry[]
+
+  @@index([businessId, customerId])
+  @@map("receipts")
+}
+
+/// Junction table: one Receipt adjusted against one or many Invoices
+model ReceiptAllocation {
+  id               String   @id @default(cuid())
+
+  receiptId        String
+  receipt          Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+
+  invoiceId        String
+  invoice          Invoice  @relation(fields: [invoiceId], references: [id])
+
+  allocatedAmount  Decimal  @db.Decimal(14, 2)
+
+  @@index([receiptId])
+  @@index([invoiceId])
+  @@map("receipt_allocations")
+}

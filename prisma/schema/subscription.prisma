@@ -1,0 +1,86 @@
+// ============================================================
+// subscription.prisma
+// Tax Bunny is sold on a subscription basis. This models the
+// SaaS plan a Business subscribes to (NOT the client's own
+// recurring/subscription billing to their customers — see
+// invoice.prisma for that, SRS Sec. 25).
+// ============================================================
+
+model Plan {
+  id              String         @id @default(cuid())
+
+  name            String         @unique   // e.g. "Starter", "Growth", "Pro"
+  description     String?
+
+  price           Decimal        @db.Decimal(10, 2)
+  billingCycle    BillingCycle   @default(MONTHLY)
+
+  maxUsers        Int?           // null = unlimited
+  maxInvoicesPerMonth Int?
+  maxWarehouses   Int?
+
+  hasPOS          Boolean        @default(false)
+  hasManufacturing Boolean       @default(false)
+  hasAdvancedReports Boolean     @default(false)
+  hasApiAccess    Boolean        @default(false)
+
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  subscriptions   Subscription[]
+
+  @@map("plans")
+}
+
+/// One active subscription per Business, sold on the chosen plan/cycle
+model Subscription {
+  id                 String             @id @default(cuid())
+
+  businessId         String             @unique
+  business           Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  planId             String
+  plan               Plan               @relation(fields: [planId], references: [id])
+
+  status             SubscriptionStatus @default(TRIALING)
+  billingCycle       BillingCycle       @default(MONTHLY)
+
+  trialEndsAt        DateTime?
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+
+  autoRenew          Boolean            @default(true)
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  invoices           SubscriptionInvoice[]
+
+  @@map("subscriptions")
+}
+
+/// Tax Bunny's own billing invoice/receipt for the SaaS subscription
+/// (e.g. via a payment gateway — SRS Sec. 40, Phase 4)
+model SubscriptionInvoice {
+  id              String        @id @default(cuid())
+
+  subscriptionId  String
+  subscription    Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("INR")
+  status          PaymentStatus @default(UNPAID)
+
+  periodStart     DateTime
+  periodEnd       DateTime
+
+  paymentGateway  String?       // e.g. Razorpay, Stripe
+  gatewayPaymentId String?
+  paidAt          DateTime?
+
+  createdAt       DateTime      @default(now())
+
+  @@map("subscription_invoices")
+}

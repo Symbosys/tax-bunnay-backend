@@ -1,0 +1,65 @@
+// ============================================================
+// gst.prisma
+// GST Portal, Returns & Filing History (SRS Sec. 23 / Sec. 28)
+// ============================================================
+
+model GstReturn {
+  id              String    @id @default(cuid())
+
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  returnType      String    // GSTR-1, GSTR-3B, GSTR-2B, GSTR-9
+  taxPeriod       String    // e.g. "May 2026", "Apr 2026"
+  dueDate         DateTime
+  status          String    @default("notFiled") // filed, notFiled, pending, dueSoon, overdue
+  filingDate      DateTime?
+  arn             String?   // Acknowledgement Reference Number (e.g. AA1906260123456)
+  
+  liabilityAmount Decimal?  @db.Decimal(14, 2)
+  taxableAmount   Decimal   @default(0) @db.Decimal(14, 2)
+  cgstAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  sgstAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  igstAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  cessAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  totalTax        Decimal   @default(0) @db.Decimal(14, 2)
+  totalInvoices   Int       @default(0)
+  
+  rawPayloadJson  String?   @db.Text
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([businessId, returnType, taxPeriod])
+  @@index([businessId])
+  @@map("gst_returns")
+}
+
+model GstPayment {
+  id              String    @id @default(cuid())
+
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  challanNumber   String
+  cpin            String?
+  paymentDate     DateTime  @default(now())
+  taxPeriod       String    // e.g. "May 2026"
+
+  cgstAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  sgstAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  igstAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  cessAmount      Decimal   @default(0) @db.Decimal(14, 2)
+  totalAmount     Decimal   @default(0) @db.Decimal(14, 2)
+
+  paymentMode     String    @default("NEFT/RTGS")
+  bankName        String?
+  brn             String?
+  status          String    @default("PAID")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([businessId])
+  @@map("gst_payments")
+}

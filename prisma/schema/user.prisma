@@ -1,0 +1,89 @@
+// ============================================================
+// user.prisma
+// Platform login identity. Email + password is created once,
+// during onboarding (Business Setup), and used for every
+// subsequent login on Web/Desktop and Mobile (SRS Sec. 38).
+// A single User can belong to multiple Businesses (SRS Sec. 4).
+// ============================================================
+
+model User {
+  id                 String    @id @default(cuid())
+
+  fullName           String
+  email              String    @unique
+  passwordHash       String
+  phone              String?
+
+  isPlatformAdmin    Boolean   @default(false)
+  isEmailVerified    Boolean   @default(false)
+  isActive           Boolean   @default(true)
+
+  // OTP / 2FA-ready architecture (SRS Sec. 38)
+  twoFactorEnabled   Boolean   @default(false)
+  twoFactorSecret    String?
+
+  lastLoginAt        DateTime?
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Businesses this user owns or is a member of
+  businessMemberships BusinessUser[]
+
+  // The business this user personally created at onboarding
+  ownedBusinesses     Business[]     @relation("BusinessOwner")
+
+  sessions            Session[]
+  auditLogs           AuditLog[]
+
+  @@map("users")
+}
+
+/// Login sessions / refresh tokens, one per device (Web, Desktop, Android, iOS)
+model Session {
+  id            String   @id @default(cuid())
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  refreshToken  String   @unique
+  deviceInfo    String?
+  ipAddress     String?
+  platform      String?  // WEB | DESKTOP | ANDROID | IOS
+
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  revokedAt     DateTime?
+
+  @@map("sessions")
+}
+
+/// Links a User to a Business with a role, enabling multi-business
+/// and multi-user access under a single login (SRS Sec. 4, Sec. 30)
+model BusinessUser {
+  id          String       @id @default(cuid())
+
+  businessId  String
+  business    Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role        BusinessRole @default(SALES_USER)
+
+  // Fine-grained permission overrides (SRS Sec. 30: View/Create/Edit/Delete/Print/Export/Cancel/Approve)
+  canView     Boolean      @default(true)
+  canCreate   Boolean      @default(false)
+  canEdit     Boolean      @default(false)
+  canDelete   Boolean      @default(false)
+  canPrint    Boolean      @default(true)
+  canExport   Boolean      @default(false)
+  canCancel   Boolean      @default(false)
+  canApprove  Boolean      @default(false)
+
+  invitedAt   DateTime     @default(now())
+  joinedAt    DateTime?
+
+  @@unique([businessId, userId])
+  @@map("business_users")
+}

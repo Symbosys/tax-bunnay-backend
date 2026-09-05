@@ -1,0 +1,37 @@
+// ============================================================
+// supplier.prisma
+// Supplier Management (SRS Sec. 6)
+// ============================================================
+
+model Supplier {
+  id              String     @id @default(cuid())
+
+  businessId      String
+  business        Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name            String
+  gstin           String?
+  pan             String?
+
+  mobileNumber    String?
+  email           String?
+  address         String?
+  state           String?
+
+  creditTerms     String?
+  openingBalance  Decimal    @default(0) @db.Decimal(12, 2)
+  supplierGroup   String?
+  notes           String?
+
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  purchases       Purchase[]
+  payments        Payment[]
+  ledgerEntries   LedgerEntry[]
+  debitNotes      DebitNote[]
+
+  @@index([businessId])
+  @@map("suppliers")
+}
