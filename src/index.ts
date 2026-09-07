@@ -134,21 +134,21 @@ app.use(errorMiddleware);
  */
 const PORT = env.server.port;
 
-app.listen(Number(PORT), "0.0.0.0", async () => {
-  console.log(`🚀 Server running on http://localhost:${PORT} (0.0.0.0:${PORT})`);
+// app.listen(Number(PORT), "0.0.0.0", async () => {
+//   console.log(`🚀 Server running on http://localhost:${PORT} (0.0.0.0:${PORT})`);
 
-  // Automatically reverse port to connected Android devices in dev mode
-  if (process.env.NODE_ENV !== "production") {
-    try {
-      const { exec } = await import("child_process");
-      exec(`adb reverse tcp:${PORT} tcp:${PORT}`, (err) => {
-        if (!err) {
-          console.log(`📱 [ADB] Reversed tcp:${PORT} to connected Android device`);
-        }
-      });
-    } catch (_) {}
-  }
-});
+//   // Automatically reverse port to connected Android devices in dev mode
+//   if (process.env.NODE_ENV !== "production") {
+//     try {
+//       const { exec } = await import("child_process");
+//       exec(`adb reverse tcp:${PORT} tcp:${PORT}`, (err) => {
+//         if (!err) {
+//           console.log(`📱 [ADB] Reversed tcp:${PORT} to connected Android device`);
+//         }
+//       });
+//     } catch (_) {}
+//   }
+// });
 
 /**
  * Global Process Error Listeners
@@ -161,3 +161,5 @@ process.on("unhandledRejection", (reason: any) => {
 process.on("uncaughtException", (error: Error) => {
   console.error("[FATAL] Uncaught Exception:", error);
 });
+
+export default app;
