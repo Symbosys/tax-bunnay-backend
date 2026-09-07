@@ -1,26 +1,30 @@
 {
   "name": "backend",
-  "module": "src/index.ts",
-  "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "build": "bunx prisma generate",
-    "start": "bun src/index.ts",
-    "postinstall": "bunx prisma generate"
-  },
+  "main": "server.js",
   "type": "module",
   "private": true,
   "engines": {
-    "bun": ">=1.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build:prisma": "prisma generate",
+    "build:bundle": "esbuild src/index.ts --bundle --platform=node --format=esm --outdir=dist --packages=external",
+    "build": "npm run build:prisma && npm run build:bundle",
+    "start": "node server.js",
+    "postinstall": "npm run build"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/bun": "latest",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
     "@types/pg": "^8.23.1",
-    "prisma": "^7.9.1"
+    "esbuild": "^0.28.2",
+    "prisma": "^7.9.1",
+    "tsx": "^4.23.12"
   },
   "peerDependencies": {
     "typescript": "^5"
