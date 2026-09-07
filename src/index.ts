@@ -8,7 +8,6 @@ import express, {
 import { env } from "./config/env.config";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { ErrorResponse } from "./utils/response.util";
-
 import { authRouter } from "./module/user/routes/auth.routes";
 import { onboardingRouter } from "./module/onboarding/routes/onboarding.routes";
 import { customerRouter } from "./module/business/customer/routes/customer.routes";
