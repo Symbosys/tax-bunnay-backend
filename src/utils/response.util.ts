@@ -28,6 +28,22 @@ export class ErrorResponse extends Error {
       return isNaN(obj.getTime()) ? null : obj.toISOString(); // ✅ serialize Date properly safely
     } else if (typeof obj === "bigint") {
       return obj.toString(); // ✅ BigInt -> string
+    } else if (obj && typeof obj === "object" && typeof obj.toNumber === "function") {
+      return obj.toNumber(); // ✅ Prisma Decimal -> number
+    } else if (
+      obj &&
+      typeof obj === "object" &&
+      "d" in obj &&
+      "s" in obj &&
+      "e" in obj &&
+      Array.isArray(obj.d)
+    ) {
+      // ✅ Serialized Decimal object { d: [400], s: 1, e: 2 } fallback
+      const sign = obj.s < 0 ? -1 : 1;
+      const digits = obj.d.join("");
+      const power = (obj.e ?? 0) - digits.length + 1;
+      const num = Number(digits) * Math.pow(10, power);
+      return isNaN(num) ? 0 : sign * num;
     } else if (Array.isArray(obj)) {
       return obj.map(normalizeBigInt);
     } else if (obj && typeof obj === "object") {

@@ -18,6 +18,10 @@ import { productRouter } from "./module/business/productListing/routes/product.r
 import { gstRouter } from "./module/gstIn/routes/gst.routes";
 import { platformOrganizationRouter } from "./module/platform-Admin/organization/routes/organization.routes";
 import { platformPlanRouter } from "./module/platform-Admin/plans/routes/plan.routes";
+import { posRouter } from "./module/pos";
+import { receiptRouter } from "./module/payment&receipts/receipt/routes/receipt.routes";
+import { paymentEntryRouter } from "./module/payment&receipts/payment-entry/routes/payment-entry.routes";
+import { outstandingRouter } from "./module/payment&receipts/outstanding-analysis/routes/outstanding.routes";
 
 const app = express();
 
@@ -101,6 +105,14 @@ app.use("/api/v1/platform-admin/organizations", platformOrganizationRouter);
 app.use("/api/platform-admin/organizations", platformOrganizationRouter);
 app.use("/api/v1/platform-admin/plans", platformPlanRouter);
 app.use("/api/platform-admin/plans", platformPlanRouter);
+app.use("/api/v1/pos", posRouter);
+app.use("/api/pos", posRouter);
+app.use("/api/v1/receipts", receiptRouter);
+app.use("/api/receipts", receiptRouter);
+app.use("/api/v1/payments", paymentEntryRouter);
+app.use("/api/payments", paymentEntryRouter);
+app.use("/api/v1/outstanding", outstandingRouter);
+app.use("/api/outstanding", outstandingRouter);
 
 
 
