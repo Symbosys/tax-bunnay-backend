@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "postinstall": "bunx prisma generate"
+    "postinstall": "npx prisma generate"
   },
   "type": "module",
   "private": true,
