@@ -271,22 +271,30 @@ export class OnboardingRepository {
         },
       });
 
-      // 4. Find or create the SaaS Plan
+      // 4. Find the SaaS Plan or fallback to first available active plan
       let plan = await tx.plan.findFirst({
         where: {
           name: {
             equals: params.planName.trim(),
             mode: "insensitive",
           },
+          isActive: true,
         },
       });
+
+      if (!plan) {
+        plan = await tx.plan.findFirst({
+          where: { isActive: true },
+          orderBy: { price: "asc" },
+        });
+      }
 
       if (!plan) {
         plan = await tx.plan.create({
           data: {
             name: params.planName.trim(),
             description: `${params.planName} Tier - Full ERP & Multi-User Access`,
-            price: 1499.00,
+            price: 0,
             billingCycle: params.billingCycle,
             maxUsers: 10,
             maxInvoicesPerMonth: 5000,

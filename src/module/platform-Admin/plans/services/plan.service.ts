@@ -86,76 +86,7 @@ export class PlatformPlanService {
    * Retrieve all active SaaS plans
    */
   async getAllPlans(): Promise<PlatformPlanDTO[]> {
-    let plans = await this.repo.findAll();
-
-    // If no plans exist yet in DB, bootstrap default Starter, Growth, Enterprise
-    if (plans.length === 0) {
-      await this.repo.create({
-        name: "Starter",
-        tagline: "Ideal for small retail businesses, startups and standalone stores.",
-        priceMonthly: 999.0,
-        priceYearly: 9990.0,
-        maxUsers: 3,
-        maxInvoicesPerMonth: 500,
-        storageLimitGb: 5.0,
-        features: [
-          "Up to 3 Team Members",
-          "500 GST Invoices / Month",
-          "Basic Inventory & Barcode Scan",
-          "Standard Email Invoices",
-          "5 GB Cloud Storage",
-          "Standard Support (24h SLA)",
-        ],
-        isPopular: false,
-        themeColor: "#2563EB",
-      });
-
-      await this.repo.create({
-        name: "Growth",
-        tagline: "Best for scaling wholesalers, multi-location shops, and expanding businesses.",
-        priceMonthly: 2499.0,
-        priceYearly: 24990.0,
-        maxUsers: 15,
-        maxInvoicesPerMonth: 5000,
-        storageLimitGb: 25.0,
-        features: [
-          "Up to 15 Team Members",
-          "5,000 Invoices / Month",
-          "Multi-Warehouse Inventory",
-          "Double-Entry Accounting & Ledger",
-          "Automated GSTR-1 & 3B Filing Portal",
-          "25 GB Cloud Storage",
-          "Priority Phone & Chat Support (4h SLA)",
-        ],
-        isPopular: true,
-        themeColor: "#15803D",
-      });
-
-      await this.repo.create({
-        name: "Enterprise",
-        tagline: "Complete ERP suite with custom domain, unlimited scale & manufacturing.",
-        priceMonthly: 6999.0,
-        priceYearly: 69990.0,
-        maxUsers: 100,
-        maxInvoicesPerMonth: 50000,
-        storageLimitGb: 100.0,
-        features: [
-          "Up to 100 Team Members",
-          "Unlimited Invoices & Transactions",
-          "Manufacturing, BOM & Job Work",
-          "Custom Subdomain / White-labeling",
-          "Advanced RBAC & Audit Trails",
-          "100 GB High-Speed Storage",
-          "Dedicated Account Manager (1h SLA)",
-          "Automated Daily Offsite Backups",
-        ],
-        isPopular: false,
-        themeColor: "#6D28D9",
-      });
-
-      plans = await this.repo.findAll();
-    }
-
+    const plans = await this.repo.findAll();
     return plans.map((p) => this.mapToPlanDTO(p));
   }
 

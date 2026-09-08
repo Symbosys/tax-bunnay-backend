@@ -174,6 +174,17 @@ export class PlatformOrganizationRepository {
   }
 
   /**
+   * Find organization by business name
+   */
+  async findByName(name: string) {
+    return prisma.business.findFirst({
+      where: {
+        businessName: { equals: name.trim(), mode: "insensitive" },
+      },
+    });
+  }
+
+  /**
    * Find organization by code (stored in cinOrLlpin)
    */
   async findByCode(code: string) {

@@ -180,7 +180,16 @@ export class PlatformOrganizationService {
    * Provision new organization tenant from Platform Admin
    */
   async createOrganization(input: CreatePlatformOrganizationInput) {
-    // 1. Check for duplicate code
+    // 1. Check for duplicate business name
+    const existingName = await this.repo.findByName(input.name);
+    if (existingName) {
+      throw new ErrorResponse(
+        `An organization with name "${input.name.trim()}" already exists.`,
+        409
+      );
+    }
+
+    // 2. Check for duplicate code
     const existingCode = await this.repo.findByCode(input.code);
     if (existingCode) {
       throw new ErrorResponse(
