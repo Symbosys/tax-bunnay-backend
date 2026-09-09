@@ -61,6 +61,13 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+/// Lifecycle of a purchase bill (independent of PaymentStatus)
+enum PurchaseStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
 enum PaymentMode {
   CASH
   BANK

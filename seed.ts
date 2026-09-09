@@ -59,8 +59,8 @@ async function seedPlatformAdmin() {
   console.log(`   - isActive: ${primaryAdmin.isActive}`);
   console.log(`   - isEmailVerified: ${primaryAdmin.isEmailVerified}\n`);
 
-  // 4. Ensure any existing admin accounts (like saif@gmail.com) maintain active admin privileges
-  const secondaryAdmins = ["saif@gmail.com"];
+  // 4. Ensure any secondary admin accounts maintain active admin privileges
+  const secondaryAdmins: string[] = [];
   for (const secEmail of secondaryAdmins) {
     if (secEmail !== adminEmail) {
       const existingUser = await prisma.user.findUnique({

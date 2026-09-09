@@ -36,6 +36,7 @@ model Product {
   rackOrBin         String?
 
   category          String?
+  subCategory       String?
   brand             String?
 
   isActive          Boolean       @default(true)

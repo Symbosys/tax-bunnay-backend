@@ -113,9 +113,10 @@ export class PosRepository {
         businessId,
         isActive: true,
         OR: [
-          { barcode: trimmed },
-          { sku: trimmed },
-          { itemCode: trimmed },
+          { barcode: { equals: trimmed, mode: "insensitive" } },
+          { sku: { equals: trimmed, mode: "insensitive" } },
+          { itemCode: { equals: trimmed, mode: "insensitive" } },
+          { id: trimmed },
         ],
       },
       include: {

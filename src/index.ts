@@ -21,6 +21,7 @@ import { posRouter } from "./module/pos";
 import { receiptRouter } from "./module/payment&receipts/receipt/routes/receipt.routes";
 import { paymentEntryRouter } from "./module/payment&receipts/payment-entry/routes/payment-entry.routes";
 import { outstandingRouter } from "./module/payment&receipts/outstanding-analysis/routes/outstanding.routes";
+import { purchaseBillRouter } from "./module/purchase";
 
 const app = express();
 
@@ -112,6 +113,12 @@ app.use("/api/v1/payments", paymentEntryRouter);
 app.use("/api/payments", paymentEntryRouter);
 app.use("/api/v1/outstanding", outstandingRouter);
 app.use("/api/outstanding", outstandingRouter);
+app.use("/api/v1/purchases", purchaseBillRouter);
+app.use("/api/purchases", purchaseBillRouter);
+app.use("/api/v1/purchase", purchaseBillRouter);
+app.use("/api/purchase", purchaseBillRouter);
+app.use("/api/v1/purchase-bills", purchaseBillRouter);
+app.use("/api/purchase-bills", purchaseBillRouter);
 
 
 

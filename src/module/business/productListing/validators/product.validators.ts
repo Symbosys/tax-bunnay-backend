@@ -102,6 +102,7 @@ export const createProductSchema = z
 
     // Taxonomy
     category: nullableString(100),
+    subCategory: nullableString(100),
     brand: nullableString(100),
 
     // Status
@@ -134,6 +135,7 @@ export const createProductSchema = z
       warehouseId: data.warehouseId,
       rackOrBin: data.rackOrBin,
       category: data.category ?? "General",
+      subCategory: data.subCategory,
       brand: data.brand,
       isActive: data.isActive,
     };
@@ -189,6 +191,7 @@ export const updateProductSchema = z
     rackOrBin: nullableString(50),
 
     category: nullableString(100),
+    subCategory: nullableString(100),
     brand: nullableString(100),
 
     isActive: z.boolean().optional(),
@@ -246,6 +249,7 @@ export const updateProductSchema = z
       ...(data.warehouseId !== undefined && { warehouseId: data.warehouseId }),
       ...(data.rackOrBin !== undefined && { rackOrBin: data.rackOrBin }),
       ...(data.category !== undefined && { category: data.category }),
+      ...(data.subCategory !== undefined && { subCategory: data.subCategory }),
       ...(data.brand !== undefined && { brand: data.brand }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
     };
@@ -257,6 +261,7 @@ export const updateProductSchema = z
 export const productQuerySchema = z.object({
   search: z.string().trim().optional(),
   category: z.string().trim().optional(),
+  subCategory: z.string().trim().optional(),
   lowStock: z
     .union([z.boolean(), z.string()])
     .optional()

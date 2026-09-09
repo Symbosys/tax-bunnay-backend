@@ -85,9 +85,10 @@ export class ProductRepository {
         businessId,
         isActive: true, // POS only bills active products
         OR: [
-          { barcode: clean },
+          { barcode: { equals: clean, mode: "insensitive" } },
           { sku: { equals: clean, mode: "insensitive" } },
           { itemCode: { equals: clean, mode: "insensitive" } },
+          { id: clean },
         ],
       },
       include: {
@@ -136,6 +137,7 @@ export class ProductRepository {
     const {
       search,
       category,
+      subCategory,
       lowStock,
       barcode,
       isActive,
@@ -155,6 +157,13 @@ export class ProductRepository {
     if (category && category.trim().length > 0 && category !== "All") {
       where.category = {
         equals: category.trim(),
+        mode: "insensitive",
+      };
+    }
+
+    if (subCategory && subCategory.trim().length > 0 && subCategory !== "All") {
+      where.subCategory = {
+        equals: subCategory.trim(),
         mode: "insensitive",
       };
     }

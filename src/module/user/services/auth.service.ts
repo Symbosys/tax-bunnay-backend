@@ -116,7 +116,17 @@ export class AuthService {
       );
     }
 
-    // 3. If accessing through Platform Admin portal, enforce platform admin privilege
+    // 3. Verify password
+    const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new ErrorResponse(
+        "Invalid email or password. Please check your credentials and try again.",
+        401
+      );
+    }
+
+    // 4. Strict Portal Segregation:
+    // Platform Admin portal ONLY allows platform administrators
     if (input.isPlatformAdminPortal && !user.isPlatformAdmin) {
       throw new ErrorResponse(
         "Access Denied: This account does not possess Platform Administrator permissions.",
@@ -124,12 +134,11 @@ export class AuthService {
       );
     }
 
-    // 4. Verify password
-    const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
-    if (!isPasswordValid) {
+    // Organization portal ONLY allows organization accounts (Platform Admin accounts MUST use Platform Admin Panel)
+    if (!input.isPlatformAdminPortal && user.isPlatformAdmin) {
       throw new ErrorResponse(
-        "Invalid email or password. Please check your credentials and try again.",
-        401
+        "Access Denied: Platform Administrator accounts cannot log in to the Organization portal. Please use the Platform Admin Panel.",
+        403
       );
     }
 
