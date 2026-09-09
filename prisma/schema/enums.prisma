@@ -68,6 +68,15 @@ enum PurchaseStatus {
   CANCELLED
 }
 
+/// Lifecycle of a purchase return / debit note (SRS Sec. 12)
+enum PurchaseReturnStatus {
+  DRAFT
+  CONFIRMED
+  ADJUSTED
+  REFUNDED
+  CANCELLED
+}
+
 enum PaymentMode {
   CASH
   BANK

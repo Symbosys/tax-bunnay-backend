@@ -228,7 +228,9 @@ export class ProductService {
   }
 
   /**
-   * High-speed Barcode lookup for POS Billing
+   * High-speed Barcode lookup for Product Listing / POS.
+   * Does NOT auto-create products — unit price & GST must be entered manually
+   * via the Product Listing screen before a product is saved to the database.
    */
   async findProductByBarcode(businessId: string, barcodeOrSku: string) {
     await this.validateBusiness(businessId);
@@ -238,37 +240,11 @@ export class ProductService {
     }
 
     const clean = barcodeOrSku.trim();
-    let product = await this.repo.findByBarcode(
-      businessId,
-      clean
-    );
-
-    if (!product) {
-      // Auto-provision product for scanned physical barcode so POS billing never fails
-      try {
-        await this.repo.create(businessId, {
-          name: `Item #${clean}`,
-          barcode: clean,
-          sku: `SKU-${clean.length > 6 ? clean.substring(clean.length - 6) : clean}`,
-          category: "General",
-          purchasePrice: 40.0,
-          sellingPrice: 50.0,
-          mrp: 60.0,
-          gstRatePercent: 18.0,
-          openingStock: 100,
-          primaryUnit: "PCS",
-          isActive: true,
-        });
-        product = await this.repo.findByBarcode(businessId, clean);
-      } catch (_createErr) {
-        // Retry find in case of concurrent creation
-        product = await this.repo.findByBarcode(businessId, clean);
-      }
-    }
+    const product = await this.repo.findByBarcode(businessId, clean);
 
     if (!product) {
       throw new ErrorResponse(
-        `Product with barcode "${clean}" could not be retrieved.`,
+        `Product with barcode "${clean}" is not listed yet. Add it from Product Listing with unit price and GST.`,
         404
       );
     }

@@ -73,26 +73,32 @@ model CreditNote {
 }
 
 model PurchaseReturn {
-  id            String       @id @default(cuid())
+  id               String               @id @default(cuid())
 
-  businessId    String
+  businessId       String
 
-  purchaseId    String
-  purchase      Purchase     @relation(fields: [purchaseId], references: [id])
+  purchaseId       String
+  purchase         Purchase             @relation(fields: [purchaseId], references: [id])
 
-  returnDate    DateTime     @default(now())
-  reason        String?
+  returnDate       DateTime             @default(now())
+  reason           String?
+  notes            String?
+  status           PurchaseReturnStatus @default(DRAFT)
 
-  taxableValue  Decimal      @default(0) @db.Decimal(14, 2)
-  gstAmount     Decimal      @default(0) @db.Decimal(14, 2)
-  totalAmount   Decimal      @default(0) @db.Decimal(14, 2)
+  taxableValue     Decimal              @default(0) @db.Decimal(14, 2)
+  gstAmount        Decimal              @default(0) @db.Decimal(14, 2)
+  totalAmount      Decimal              @default(0) @db.Decimal(14, 2)
+  amountAdjusted   Decimal              @default(0) @db.Decimal(14, 2)
 
-  createdAt     DateTime     @default(now())
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
-  items         PurchaseReturnItem[]
-  debitNote     DebitNote?
+  items            PurchaseReturnItem[]
+  debitNote        DebitNote?
 
   @@index([businessId, purchaseId])
+  @@index([businessId, status])
+  @@index([businessId, returnDate])
   @@map("purchase_returns")
 }
 
@@ -103,12 +109,19 @@ model PurchaseReturnItem {
   purchaseReturn    PurchaseReturn @relation(fields: [purchaseReturnId], references: [id], onDelete: Cascade)
 
   productId         String
+  productName       String?
+  hsnCode           String?
+  unit              String?
   quantity          Decimal        @db.Decimal(12, 3)
   rate              Decimal        @db.Decimal(12, 2)
+  gstRatePercent    Decimal        @default(0) @db.Decimal(5, 2)
   taxableValue      Decimal        @db.Decimal(14, 2)
   gstAmount         Decimal        @default(0) @db.Decimal(14, 2)
+  lineTotal         Decimal        @default(0) @db.Decimal(14, 2)
+  returnReason      String?
 
   @@index([purchaseReturnId])
+  @@index([productId])
   @@map("purchase_return_items")
 }
 
