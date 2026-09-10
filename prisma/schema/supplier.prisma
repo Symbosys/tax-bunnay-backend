@@ -31,6 +31,7 @@ model Supplier {
   payments        Payment[]
   ledgerEntries   LedgerEntry[]
   debitNotes      DebitNote[]
+  products        Product[]
 
   @@index([businessId])
   @@map("suppliers")

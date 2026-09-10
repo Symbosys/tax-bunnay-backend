@@ -2,6 +2,25 @@ import { prisma } from "../../../../db/prisma";
 import type { ProductQueryParams } from "../validators/product.validators";
 
 export class ProductRepository {
+  private readonly productInclude = {
+    warehouse: {
+      select: { id: true, name: true },
+    },
+    supplier: {
+      select: { id: true, name: true, gstin: true, mobileNumber: true },
+    },
+    stockMovements: {
+      select: { quantity: true },
+    },
+    _count: {
+      select: {
+        invoiceItems: true,
+        purchaseItems: true,
+        stockMovements: true,
+      },
+    },
+  };
+
   /**
    * Helper to verify or sanitize warehouseId
    */
@@ -18,13 +37,32 @@ export class ProductRepository {
   }
 
   /**
+   * Helper to verify supplier belongs to the same business
+   */
+  private async resolveSupplierId(
+    businessId: string,
+    supplierId?: string | null
+  ): Promise<string | null> {
+    if (!supplierId || supplierId.trim().length === 0) return null;
+    const supplier = await prisma.supplier.findFirst({
+      where: { id: supplierId.trim(), businessId },
+      select: { id: true },
+    });
+    return supplier ? supplier.id : null;
+  }
+
+  /**
    * Create a new Product record linked to a Business
    */
   async create(businessId: string, data: any) {
-    const { warehouseId, ...rest } = data;
+    const { warehouseId, supplierId, ...rest } = data;
     const resolvedWarehouseId = await this.resolveWarehouseId(
       businessId,
       warehouseId
+    );
+    const resolvedSupplierId = await this.resolveSupplierId(
+      businessId,
+      supplierId
     );
 
     return prisma.product.create({
@@ -32,19 +70,9 @@ export class ProductRepository {
         businessId,
         ...rest,
         warehouseId: resolvedWarehouseId,
+        supplierId: resolvedSupplierId,
       },
-      include: {
-        warehouse: {
-          select: { id: true, name: true },
-        },
-        _count: {
-          select: {
-            invoiceItems: true,
-            purchaseItems: true,
-            stockMovements: true,
-          },
-        },
-      },
+      include: this.productInclude,
     });
   }
 
@@ -57,21 +85,7 @@ export class ProductRepository {
         id,
         businessId,
       },
-      include: {
-        warehouse: {
-          select: { id: true, name: true },
-        },
-        stockMovements: {
-          select: { quantity: true },
-        },
-        _count: {
-          select: {
-            invoiceItems: true,
-            purchaseItems: true,
-            stockMovements: true,
-          },
-        },
-      },
+      include: this.productInclude,
     });
   }
 
@@ -91,21 +105,7 @@ export class ProductRepository {
           { id: clean },
         ],
       },
-      include: {
-        warehouse: {
-          select: { id: true, name: true },
-        },
-        stockMovements: {
-          select: { quantity: true },
-        },
-        _count: {
-          select: {
-            invoiceItems: true,
-            purchaseItems: true,
-            stockMovements: true,
-          },
-        },
-      },
+      include: this.productInclude,
     });
   }
 
@@ -136,6 +136,7 @@ export class ProductRepository {
   async findAll(businessId: string, params: ProductQueryParams) {
     const {
       search,
+      supplierId,
       category,
       subCategory,
       lowStock,
@@ -173,7 +174,11 @@ export class ProductRepository {
       where.barcode = barcode.trim();
     }
 
-    // Search query across name, itemCode, barcode, and sku
+    if (supplierId && supplierId.trim().length > 0) {
+      where.supplierId = supplierId.trim();
+    }
+
+    // Search query across name, itemCode, barcode, sku, and supplier name
     if (search && search.trim().length > 0) {
       const q = search.trim();
       where.OR = [
@@ -181,6 +186,7 @@ export class ProductRepository {
         { itemCode: { contains: q, mode: "insensitive" } },
         { sku: { contains: q, mode: "insensitive" } },
         { barcode: { contains: q } },
+        { supplier: { name: { contains: q, mode: "insensitive" } } },
       ];
     }
 
@@ -194,21 +200,7 @@ export class ProductRepository {
         orderBy: {
           [sortBy]: sortOrder,
         },
-        include: {
-          warehouse: {
-            select: { id: true, name: true },
-          },
-          stockMovements: {
-            select: { quantity: true },
-          },
-          _count: {
-            select: {
-              invoiceItems: true,
-              purchaseItems: true,
-              stockMovements: true,
-            },
-          },
-        },
+        include: this.productInclude,
       }),
       prisma.product.count({ where }),
     ]);
@@ -240,7 +232,7 @@ export class ProductRepository {
    * Update Product record
    */
   async update(businessId: string, id: string, data: any) {
-    const { warehouseId, ...rest } = data;
+    const { warehouseId, supplierId, ...rest } = data;
     const updateData: any = { ...rest };
 
     if (warehouseId !== undefined) {
@@ -250,24 +242,17 @@ export class ProductRepository {
       );
     }
 
+    if (supplierId !== undefined) {
+      updateData.supplierId = await this.resolveSupplierId(
+        businessId,
+        supplierId
+      );
+    }
+
     return prisma.product.update({
       where: { id },
       data: updateData,
-      include: {
-        warehouse: {
-          select: { id: true, name: true },
-        },
-        stockMovements: {
-          select: { quantity: true },
-        },
-        _count: {
-          select: {
-            invoiceItems: true,
-            purchaseItems: true,
-            stockMovements: true,
-          },
-        },
-      },
+      include: this.productInclude,
     });
   }
 

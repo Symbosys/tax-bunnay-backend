@@ -65,6 +65,16 @@ export class ProductService {
       warehouseId: product.warehouseId ?? "",
       warehouseName: product.warehouse?.name ?? "",
       rackOrBin: product.rackOrBin ?? "",
+      supplierId: product.supplierId ?? product.supplier?.id ?? "",
+      supplierName: product.supplier?.name ?? "",
+      supplier: product.supplier
+        ? {
+            id: product.supplier.id,
+            name: product.supplier.name,
+            gstin: product.supplier.gstin ?? "",
+            mobile: product.supplier.mobileNumber ?? "",
+          }
+        : null,
       hasBatchTracking: Boolean(product.hasBatchTracking),
       hasSerialTracking: Boolean(product.hasSerialTracking),
       hasExpiryTracking: Boolean(product.hasExpiryTracking),
@@ -133,6 +143,25 @@ export class ProductService {
   }
 
   /**
+   * Ensure supplier exists in this business before linking
+   */
+  private async validateSupplier(businessId: string, supplierId: string) {
+    const supplier = await prisma.supplier.findFirst({
+      where: { id: supplierId, businessId },
+      select: { id: true, isActive: true, name: true },
+    });
+
+    if (!supplier) {
+      throw new ErrorResponse(
+        "Supplier not found in this organization. Create the supplier first.",
+        404
+      );
+    }
+
+    return supplier;
+  }
+
+  /**
    * Create a new Product under Business Master
    */
   async createProduct(businessId: string, input: CreateProductInput) {
@@ -168,6 +197,10 @@ export class ProductService {
           409
         );
       }
+    }
+
+    if (input.supplierId) {
+      await this.validateSupplier(businessId, input.supplierId);
     }
 
     const productData = {
@@ -299,6 +332,10 @@ export class ProductService {
           409
         );
       }
+    }
+
+    if (input.supplierId) {
+      await this.validateSupplier(businessId, input.supplierId);
     }
 
     const updated = await this.repo.update(businessId, productId, input);

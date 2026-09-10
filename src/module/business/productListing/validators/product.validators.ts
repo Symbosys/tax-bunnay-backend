@@ -100,6 +100,9 @@ export const createProductSchema = z
     warehouseId: nullableString(100),
     rackOrBin: nullableString(50),
 
+    // Default supplier for this product (optional)
+    supplierId: nullableString(100),
+
     // Taxonomy
     category: nullableString(100),
     subCategory: nullableString(100),
@@ -134,6 +137,7 @@ export const createProductSchema = z
       hasExpiryTracking: data.hasExpiryTracking,
       warehouseId: data.warehouseId,
       rackOrBin: data.rackOrBin,
+      supplierId: data.supplierId,
       category: data.category ?? "General",
       subCategory: data.subCategory,
       brand: data.brand,
@@ -189,6 +193,7 @@ export const updateProductSchema = z
 
     warehouseId: nullableString(100),
     rackOrBin: nullableString(50),
+    supplierId: nullableString(100),
 
     category: nullableString(100),
     subCategory: nullableString(100),
@@ -248,6 +253,7 @@ export const updateProductSchema = z
       }),
       ...(data.warehouseId !== undefined && { warehouseId: data.warehouseId }),
       ...(data.rackOrBin !== undefined && { rackOrBin: data.rackOrBin }),
+      ...(data.supplierId !== undefined && { supplierId: data.supplierId }),
       ...(data.category !== undefined && { category: data.category }),
       ...(data.subCategory !== undefined && { subCategory: data.subCategory }),
       ...(data.brand !== undefined && { brand: data.brand }),
@@ -260,6 +266,7 @@ export const updateProductSchema = z
  */
 export const productQuerySchema = z.object({
   search: z.string().trim().optional(),
+  supplierId: z.string().trim().optional(),
   category: z.string().trim().optional(),
   subCategory: z.string().trim().optional(),
   lowStock: z
