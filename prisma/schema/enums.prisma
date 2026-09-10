@@ -59,6 +59,7 @@ enum InvoiceStatus {
   SAVED
   PRINTED
   CANCELLED
+  HELD
 }
 
 /// Lifecycle of a purchase bill (independent of PaymentStatus)
@@ -70,6 +71,15 @@ enum PurchaseStatus {
 
 /// Lifecycle of a purchase return / debit note (SRS Sec. 12)
 enum PurchaseReturnStatus {
+  DRAFT
+  CONFIRMED
+  ADJUSTED
+  REFUNDED
+  CANCELLED
+}
+
+/// Lifecycle of a sales return / credit note (SRS Sec. 12)
+enum SalesReturnStatus {
   DRAFT
   CONFIRMED
   ADJUSTED

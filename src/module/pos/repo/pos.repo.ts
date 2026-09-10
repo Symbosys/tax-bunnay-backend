@@ -87,6 +87,7 @@ export class PosRepository {
         gstRate: Number(p.gstRatePercent || 0),
         category: p.category || "General",
         brand: p.brand || "",
+        imageUrl: p.imageUrl || null,
         currentStock: totalStock,
         warehouseStocks,
       };
@@ -152,6 +153,7 @@ export class PosRepository {
       mrp: Number(product.mrp || product.sellingPrice || 0),
       gstRate: Number(product.gstRatePercent || 0),
       category: product.category || "General",
+      imageUrl: product.imageUrl || null,
       currentStock: stock,
       warehouseStocks,
     };

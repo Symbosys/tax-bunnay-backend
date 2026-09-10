@@ -1,5 +1,10 @@
 import { prisma } from "../../../../db/prisma";
 import { ErrorResponse } from "../../../../utils/response.util";
+import {
+  uploadBufferToCloudinary,
+  uploadDataUriToCloudinary,
+  type CloudinaryUploadResult,
+} from "../../../../utils/cloudinary.util";
 import { productRepo, ProductRepository } from "../repo/product.repo";
 import type {
   CreateProductInput,
@@ -61,7 +66,13 @@ export class ProductService {
       stock: Math.round(currentStock),
       category: category,
       subCategory: product.subCategory ?? "",
+      variant: product.variant ?? "",
+      quantity:
+        product.quantity !== null && product.quantity !== undefined
+          ? Math.round(Number(product.quantity))
+          : Math.round(currentStock),
       brand: product.brand ?? "",
+      imageUrl: product.imageUrl ?? null,
       warehouseId: product.warehouseId ?? "",
       warehouseName: product.warehouse?.name ?? "",
       rackOrBin: product.rackOrBin ?? "",
@@ -173,16 +184,13 @@ export class ProductService {
       finalCode = `PRD-${Date.now().toString().slice(-6)}`;
     }
 
-    // Duplicate check for itemCode within the same business
-    const existingWithCode = await this.repo.findByCodeOrSku(
+    // Duplicate check for itemCode within the same business - append suffix if conflict
+    let existingWithCode = await this.repo.findByCodeOrSku(
       businessId,
       finalCode
     );
     if (existingWithCode) {
-      throw new ErrorResponse(
-        `A product with reference code/SKU "${finalCode}" already exists (${existingWithCode.name}).`,
-        409
-      );
+      finalCode = `${finalCode}-${Date.now().toString().slice(-4)}`;
     }
 
     // Duplicate check for barcode if provided
@@ -199,13 +207,19 @@ export class ProductService {
       }
     }
 
-    if (input.supplierId) {
-      await this.validateSupplier(businessId, input.supplierId);
+    let resolvedSupplierId = input.supplierId;
+    if (resolvedSupplierId) {
+      try {
+        await this.validateSupplier(businessId, resolvedSupplierId);
+      } catch (_) {
+        resolvedSupplierId = null;
+      }
     }
 
     const productData = {
       ...input,
       itemCode: finalCode,
+      supplierId: resolvedSupplierId,
     };
 
     const product = await this.repo.create(businessId, productData);
@@ -276,10 +290,7 @@ export class ProductService {
     const product = await this.repo.findByBarcode(businessId, clean);
 
     if (!product) {
-      throw new ErrorResponse(
-        `Product with barcode "${clean}" is not listed yet. Add it from Product Listing with unit price and GST.`,
-        404
-      );
+      return null;
     }
 
     return this.formatProduct(product);
@@ -381,6 +392,44 @@ export class ProductService {
   async getMetrics(businessId: string) {
     await this.validateBusiness(businessId);
     return this.repo.getMetrics(businessId);
+  }
+
+  /**
+   * Upload product image to Cloudinary in "products" folder
+   */
+  async uploadProductImage(
+    businessId: string,
+    fileBuffer?: Buffer,
+    dataUri?: string,
+    productId?: string
+  ) {
+    await this.validateBusiness(businessId);
+
+    if (!fileBuffer && !dataUri) {
+      throw new ErrorResponse("No image file or imageBase64 data provided", 400);
+    }
+
+    let result: CloudinaryUploadResult;
+    if (fileBuffer) {
+      result = await uploadBufferToCloudinary(fileBuffer, "products");
+    } else {
+      result = await uploadDataUriToCloudinary(dataUri!, "products");
+    }
+
+    if (productId) {
+      const existing = await this.repo.findById(businessId, productId);
+      if (!existing) {
+        throw new ErrorResponse("Product not found", 404);
+      }
+      await this.repo.updateImageUrl(businessId, productId, result.secure_url);
+    }
+
+    return {
+      imageUrl: result.secure_url,
+      publicId: result.public_id,
+      format: result.format,
+      bytes: result.bytes,
+    };
   }
 }
 

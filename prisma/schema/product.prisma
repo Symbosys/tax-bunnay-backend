@@ -26,6 +26,7 @@ model Product {
 
   minStockLevel     Decimal?      @db.Decimal(12, 2)
   openingStock      Decimal       @default(0) @db.Decimal(12, 2)
+  quantity          Decimal       @default(0) @db.Decimal(12, 2)
 
   hasBatchTracking  Boolean       @default(false)
   hasSerialTracking Boolean       @default(false)
@@ -40,7 +41,9 @@ model Product {
 
   category          String?
   subCategory       String?
+  variant           String?
   brand             String?
+  imageUrl          String?
 
   isActive          Boolean       @default(true)
   createdAt         DateTime      @default(now())

@@ -211,7 +211,7 @@ export class OutstandingService {
         refNumber: inv.invoiceNumber,
         date: inv.invoiceDate,
         dueDate,
-        partyId: inv.customerId,
+        partyId: inv.customerId || "walk-in",
         partyName: inv.customer?.name || "Customer",
         partyMobile: inv.customer?.mobileNumber,
         amount: grandTotal,

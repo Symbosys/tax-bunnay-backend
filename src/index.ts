@@ -22,6 +22,8 @@ import { receiptRouter } from "./module/payment&receipts/receipt/routes/receipt.
 import { paymentEntryRouter } from "./module/payment&receipts/payment-entry/routes/payment-entry.routes";
 import { outstandingRouter } from "./module/payment&receipts/outstanding-analysis/routes/outstanding.routes";
 import { purchaseBillRouter, purchaseReturnRouter } from "./module/purchase";
+import { salesInvoiceRouter, salesReturnRouter } from "./module/salesopration";
+
 
 const app = express();
 
@@ -123,6 +125,19 @@ app.use("/api/v1/purchase-returns", purchaseReturnRouter);
 app.use("/api/purchase-returns", purchaseReturnRouter);
 app.use("/api/v1/purchaseReturns", purchaseReturnRouter);
 app.use("/api/purchaseReturns", purchaseReturnRouter);
+app.use("/api/v1/sales/invoices", salesInvoiceRouter);
+app.use("/api/sales/invoices", salesInvoiceRouter);
+app.use("/api/v1/sales-invoices", salesInvoiceRouter);
+app.use("/api/sales-invoices", salesInvoiceRouter);
+app.use("/api/v1/invoices", salesInvoiceRouter);
+app.use("/api/invoices", salesInvoiceRouter);
+app.use("/api/v1/sales/returns", salesReturnRouter);
+app.use("/api/sales/returns", salesReturnRouter);
+app.use("/api/v1/sales-returns", salesReturnRouter);
+app.use("/api/sales-returns", salesReturnRouter);
+app.use("/api/v1/credit-notes", salesReturnRouter);
+app.use("/api/credit-notes", salesReturnRouter);
+
 
 /**
  * 404 Handler

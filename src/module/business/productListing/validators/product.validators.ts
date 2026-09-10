@@ -90,6 +90,8 @@ export const createProductSchema = z
     // Inventory Stock Control
     minStockLevel: coerceNumber(0),
     openingStock: coerceNumber(0),
+    quantity: coerceNumber(0),
+    stock: coerceNumber(0),
 
     // Advanced Tracking Flags
     hasBatchTracking: z.boolean().optional().default(false),
@@ -103,10 +105,16 @@ export const createProductSchema = z
     // Default supplier for this product (optional)
     supplierId: nullableString(100),
 
-    // Taxonomy
+    // Taxonomy & Variants
     category: nullableString(100),
     subCategory: nullableString(100),
+    subcategory: nullableString(100),
+    variant: nullableString(100),
     brand: nullableString(100),
+
+    // Image URL & base64
+    imageUrl: nullableString(1000),
+    imageBase64: z.string().optional().nullable(),
 
     // Status
     isActive: z.boolean().optional().default(true),
@@ -116,6 +124,11 @@ export const createProductSchema = z
     const finalItemCode = data.itemCode ?? data.code;
     const finalGstRate =
       data.gstRatePercent > 0 ? data.gstRatePercent : data.gstRate;
+    const finalOpeningStock =
+      data.openingStock > 0
+        ? data.openingStock
+        : (data.quantity > 0 ? data.quantity : data.stock);
+    const finalSubCategory = data.subCategory ?? data.subcategory ?? null;
 
     return {
       name: data.name,
@@ -131,7 +144,8 @@ export const createProductSchema = z
       mrp: data.mrp,
       wholesalePrice: data.wholesalePrice,
       minStockLevel: data.minStockLevel,
-      openingStock: data.openingStock,
+      openingStock: finalOpeningStock,
+      quantity: finalOpeningStock,
       hasBatchTracking: data.hasBatchTracking,
       hasSerialTracking: data.hasSerialTracking,
       hasExpiryTracking: data.hasExpiryTracking,
@@ -139,8 +153,10 @@ export const createProductSchema = z
       rackOrBin: data.rackOrBin,
       supplierId: data.supplierId,
       category: data.category ?? "General",
-      subCategory: data.subCategory,
+      subCategory: finalSubCategory,
+      variant: data.variant ?? null,
       brand: data.brand,
+      imageUrl: data.imageUrl || null,
       isActive: data.isActive,
     };
   });
@@ -186,6 +202,8 @@ export const updateProductSchema = z
 
     minStockLevel: z.union([z.number(), z.string()]).optional(),
     openingStock: z.union([z.number(), z.string()]).optional(),
+    quantity: z.union([z.number(), z.string()]).optional(),
+    stock: z.union([z.number(), z.string()]).optional(),
 
     hasBatchTracking: z.boolean().optional(),
     hasSerialTracking: z.boolean().optional(),
@@ -197,7 +215,12 @@ export const updateProductSchema = z
 
     category: nullableString(100),
     subCategory: nullableString(100),
+    subcategory: nullableString(100),
+    variant: nullableString(100),
     brand: nullableString(100),
+
+    imageUrl: nullableString(1000),
+    imageBase64: z.string().optional().nullable(),
 
     isActive: z.boolean().optional(),
   })
@@ -212,6 +235,8 @@ export const updateProductSchema = z
     const finalItemCode = data.itemCode ?? data.code;
     const gstVal =
       data.gstRatePercent !== undefined ? data.gstRatePercent : data.gstRate;
+    const stockVal = data.openingStock ?? data.quantity ?? data.stock;
+    const subCatVal = data.subCategory ?? data.subcategory;
 
     return {
       ...(data.name !== undefined && { name: data.name }),
@@ -239,8 +264,9 @@ export const updateProductSchema = z
       ...(data.minStockLevel !== undefined && {
         minStockLevel: parseNumber(data.minStockLevel),
       }),
-      ...(data.openingStock !== undefined && {
-        openingStock: parseNumber(data.openingStock),
+      ...(stockVal !== undefined && {
+        openingStock: parseNumber(stockVal),
+        quantity: parseNumber(stockVal),
       }),
       ...(data.hasBatchTracking !== undefined && {
         hasBatchTracking: data.hasBatchTracking,
@@ -255,8 +281,10 @@ export const updateProductSchema = z
       ...(data.rackOrBin !== undefined && { rackOrBin: data.rackOrBin }),
       ...(data.supplierId !== undefined && { supplierId: data.supplierId }),
       ...(data.category !== undefined && { category: data.category }),
-      ...(data.subCategory !== undefined && { subCategory: data.subCategory }),
+      ...(subCatVal !== undefined && { subCategory: subCatVal }),
+      ...(data.variant !== undefined && { variant: data.variant }),
       ...(data.brand !== undefined && { brand: data.brand }),
+      ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
     };
   });
@@ -269,6 +297,7 @@ export const productQuerySchema = z.object({
   supplierId: z.string().trim().optional(),
   category: z.string().trim().optional(),
   subCategory: z.string().trim().optional(),
+  variant: z.string().trim().optional(),
   lowStock: z
     .union([z.boolean(), z.string()])
     .optional()

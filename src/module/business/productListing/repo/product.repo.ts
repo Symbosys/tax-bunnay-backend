@@ -358,6 +358,20 @@ export class ProductRepository {
       categories: Array.from(categoriesSet),
     };
   }
+
+  /**
+   * Update product image URL
+   */
+  async updateImageUrl(businessId: string, id: string, imageUrl: string) {
+    const product = await this.findById(businessId, id);
+    if (!product) return null;
+
+    return prisma.product.update({
+      where: { id },
+      data: { imageUrl },
+      include: this.productInclude,
+    });
+  }
 }
 
 export const productRepo = new ProductRepository();

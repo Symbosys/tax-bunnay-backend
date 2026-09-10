@@ -146,6 +146,15 @@ export class ProductController {
         barcode
       );
 
+      if (!product) {
+        return SuccessResponse(
+          res,
+          `Product with barcode "${barcode}" is not listed yet`,
+          null,
+          200
+        );
+      }
+
       return SuccessResponse(
         res,
         `Product found for barcode "${barcode}"`,
@@ -216,6 +225,78 @@ export class ProductController {
         res,
         "Product directory metrics retrieved successfully",
         metrics,
+        200
+      );
+    }
+  );
+
+  /**
+   * Upload Product Image (Standalone)
+   * POST /api/v1/products/upload-image
+   */
+  uploadProductImage = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const businessId = this.extractBusinessId(req);
+      const fileBuffer = req.file?.buffer;
+      const dataUri = (req.body?.imageBase64 || req.body?.dataUri || req.body?.imageUrl) as string | undefined;
+      const productId = (req.body?.productId as string) || undefined;
+
+      if (!fileBuffer && !dataUri) {
+        throw new ErrorResponse(
+          "Please upload an image file using multipart/form-data ('image' field) or provide 'imageBase64'/'dataUri' in request body",
+          400
+        );
+      }
+
+      const result = await this.service.uploadProductImage(
+        businessId,
+        fileBuffer,
+        dataUri,
+        productId
+      );
+
+      return SuccessResponse(
+        res,
+        "Product image uploaded to Cloudinary successfully",
+        result,
+        200
+      );
+    }
+  );
+
+  /**
+   * Upload and attach image to an existing Product
+   * POST /api/v1/products/:id/image
+   */
+  uploadProductImageById = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response) => {
+      const businessId = this.extractBusinessId(req);
+      const productId = req.params.id as string;
+      const fileBuffer = req.file?.buffer;
+      const dataUri = (req.body?.imageBase64 || req.body?.dataUri || req.body?.imageUrl) as string | undefined;
+
+      if (!productId) {
+        throw new ErrorResponse("Product ID parameter is required", 400);
+      }
+
+      if (!fileBuffer && !dataUri) {
+        throw new ErrorResponse(
+          "Please upload an image file using multipart/form-data ('image' field) or provide 'imageBase64'/'dataUri' in request body",
+          400
+        );
+      }
+
+      const result = await this.service.uploadProductImage(
+        businessId,
+        fileBuffer,
+        dataUri,
+        productId
+      );
+
+      return SuccessResponse(
+        res,
+        "Product image uploaded and attached successfully",
+        result,
         200
       );
     }
