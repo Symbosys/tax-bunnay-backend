@@ -90,23 +90,54 @@ export class ProductRepository {
   }
 
   /**
-   * High-speed barcode / SKU lookup for POS Billing
+   * High-speed barcode / SKU lookup for POS Billing & Product Listing
    */
   async findByBarcode(businessId: string, barcodeOrSku: string) {
+    if (!barcodeOrSku || barcodeOrSku.trim().length === 0) return null;
     const clean = barcodeOrSku.trim();
-    return prisma.product.findFirst({
+    const cleanAlt =
+      clean.length === 13 && clean.startsWith("0")
+        ? clean.substring(1)
+        : clean.length === 12
+        ? "0" + clean
+        : null;
+
+    const orConditions: any[] = [
+      { barcode: { equals: clean, mode: "insensitive" } },
+      { sku: { equals: clean, mode: "insensitive" } },
+      { itemCode: { equals: clean, mode: "insensitive" } },
+      { id: clean },
+    ];
+
+    if (cleanAlt) {
+      orConditions.push(
+        { barcode: { equals: cleanAlt, mode: "insensitive" } },
+        { sku: { equals: cleanAlt, mode: "insensitive" } }
+      );
+    }
+
+    let product = await prisma.product.findFirst({
       where: {
         businessId,
-        isActive: true, // POS only bills active products
-        OR: [
-          { barcode: { equals: clean, mode: "insensitive" } },
-          { sku: { equals: clean, mode: "insensitive" } },
-          { itemCode: { equals: clean, mode: "insensitive" } },
-          { id: clean },
-        ],
+        OR: orConditions,
       },
       include: this.productInclude,
     });
+
+    if (!product) {
+      product = await prisma.product.findFirst({
+        where: {
+          businessId,
+          OR: [
+            { barcode: { contains: clean, mode: "insensitive" } },
+            { sku: { contains: clean, mode: "insensitive" } },
+          ],
+        },
+        include: this.productInclude,
+      });
+    }
+
+    return product;
   }
 
   /**

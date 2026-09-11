@@ -135,11 +135,13 @@ export class ProductController {
   findProductByBarcode = asyncHandler(
     async (req: AuthenticatedRequest, res: Response) => {
       const businessId = this.extractBusinessId(req);
-      const barcode = req.params.barcode as string;
+      const rawBarcode = req.params.barcode as string;
 
-      if (!barcode) {
+      if (!rawBarcode || rawBarcode.trim().length === 0) {
         throw new ErrorResponse("Barcode parameter is required", 400);
       }
+
+      const barcode = decodeURIComponent(rawBarcode).trim();
 
       const product = await this.service.findProductByBarcode(
         businessId,

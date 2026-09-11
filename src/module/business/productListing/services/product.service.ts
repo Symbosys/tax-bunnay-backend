@@ -193,17 +193,58 @@ export class ProductService {
       finalCode = `${finalCode}-${Date.now().toString().slice(-4)}`;
     }
 
-    // Duplicate check for barcode if provided
+    // Duplicate check for barcode if provided - add stock to existing product
     if (input.barcode && input.barcode.trim().length > 0) {
       const existingBarcode = await this.repo.findByBarcode(
         businessId,
         input.barcode.trim()
       );
       if (existingBarcode) {
-        throw new ErrorResponse(
-          `A product with barcode "${input.barcode.trim()}" already exists (${existingBarcode.name}).`,
-          409
+        // Barcode already exists in database: add incoming stock & quantity to existing product
+        const addedQty = Number(
+          input.openingStock ?? input.quantity ?? (input as any).stock ?? 0
         );
+        const currentOpening = Number(existingBarcode.openingStock || 0);
+        const currentQuantity = Number(
+          existingBarcode.quantity ?? currentOpening
+        );
+        const newOpeningStock = currentOpening + addedQty;
+        const newQuantity = currentQuantity + addedQty;
+
+        let resolvedSupplierId = input.supplierId;
+        if (resolvedSupplierId) {
+          try {
+            await this.validateSupplier(businessId, resolvedSupplierId);
+          } catch (_) {
+            resolvedSupplierId = existingBarcode.supplierId;
+          }
+        } else {
+          resolvedSupplierId = existingBarcode.supplierId;
+        }
+
+        const updated = await this.repo.update(businessId, existingBarcode.id, {
+          ...(input.sellingPrice !== undefined && input.sellingPrice > 0
+            ? { sellingPrice: input.sellingPrice }
+            : {}),
+          ...(input.purchasePrice !== undefined && input.purchasePrice > 0
+            ? { purchasePrice: input.purchasePrice }
+            : {}),
+          ...(input.mrp !== undefined && input.mrp > 0
+            ? { mrp: input.mrp }
+            : {}),
+          ...(input.gstRatePercent !== undefined
+            ? { gstRatePercent: input.gstRatePercent }
+            : {}),
+          ...(input.category ? { category: input.category } : {}),
+          ...(input.subCategory ? { subCategory: input.subCategory } : {}),
+          ...(input.variant ? { variant: input.variant } : {}),
+          supplierId: resolvedSupplierId,
+          openingStock: newOpeningStock,
+          quantity: newQuantity,
+          isActive: true,
+        });
+
+        return this.formatProduct(updated);
       }
     }
 
@@ -345,11 +386,23 @@ export class ProductService {
       }
     }
 
-    if (input.supplierId) {
-      await this.validateSupplier(businessId, input.supplierId);
+    let updateData: any = { ...input };
+
+    if (input.addStock !== undefined && Number(input.addStock) > 0) {
+      const added = Number(input.addStock);
+      const currentOpening = Number(existing.openingStock || 0);
+      const currentQty = Number(existing.quantity ?? currentOpening);
+      updateData.openingStock = currentOpening + added;
+      updateData.quantity = currentQty + added;
+    } else if (input.isStockAddition && input.openingStock !== undefined) {
+      const added = Number(input.openingStock);
+      const currentOpening = Number(existing.openingStock || 0);
+      const currentQty = Number(existing.quantity ?? currentOpening);
+      updateData.openingStock = currentOpening + added;
+      updateData.quantity = currentQty + added;
     }
 
-    const updated = await this.repo.update(businessId, productId, input);
+    const updated = await this.repo.update(businessId, productId, updateData);
     return this.formatProduct(updated);
   }
 

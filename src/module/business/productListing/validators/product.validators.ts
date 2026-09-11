@@ -204,6 +204,8 @@ export const updateProductSchema = z
     openingStock: z.union([z.number(), z.string()]).optional(),
     quantity: z.union([z.number(), z.string()]).optional(),
     stock: z.union([z.number(), z.string()]).optional(),
+    addStock: z.union([z.number(), z.string()]).optional(),
+    isStockAddition: z.boolean().optional(),
 
     hasBatchTracking: z.boolean().optional(),
     hasSerialTracking: z.boolean().optional(),
@@ -236,6 +238,7 @@ export const updateProductSchema = z
     const gstVal =
       data.gstRatePercent !== undefined ? data.gstRatePercent : data.gstRate;
     const stockVal = data.openingStock ?? data.quantity ?? data.stock;
+    const addStockVal = parseNumber(data.addStock);
     const subCatVal = data.subCategory ?? data.subcategory;
 
     return {
@@ -267,6 +270,10 @@ export const updateProductSchema = z
       ...(stockVal !== undefined && {
         openingStock: parseNumber(stockVal),
         quantity: parseNumber(stockVal),
+      }),
+      ...(addStockVal !== undefined && { addStock: addStockVal }),
+      ...(data.isStockAddition !== undefined && {
+        isStockAddition: data.isStockAddition,
       }),
       ...(data.hasBatchTracking !== undefined && {
         hasBatchTracking: data.hasBatchTracking,
