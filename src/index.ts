@@ -23,6 +23,11 @@ import { paymentEntryRouter } from "./module/payment&receipts/payment-entry/rout
 import { outstandingRouter } from "./module/payment&receipts/outstanding-analysis/routes/outstanding.routes";
 import { purchaseBillRouter, purchaseReturnRouter } from "./module/purchase";
 import { salesInvoiceRouter, salesReturnRouter } from "./module/salesopration";
+import {
+  goodsWarehouseRouter,
+  stockValuationRouter,
+} from "./module/inventory&controle";
+
 
 
 const app = express();
@@ -137,6 +142,10 @@ app.use("/api/v1/sales-returns", salesReturnRouter);
 app.use("/api/sales-returns", salesReturnRouter);
 app.use("/api/v1/credit-notes", salesReturnRouter);
 app.use("/api/credit-notes", salesReturnRouter);
+app.use("/api/v1/inventory/stock-valuation", stockValuationRouter);
+app.use("/api/inventory/stock-valuation", stockValuationRouter);
+app.use("/api/v1/inventory/goods-warehouse", goodsWarehouseRouter);
+app.use("/api/inventory/goods-warehouse", goodsWarehouseRouter);
 
 
 /**
