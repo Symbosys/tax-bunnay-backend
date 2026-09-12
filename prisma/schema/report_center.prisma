@@ -1,0 +1,60 @@
+// ============================================================
+// report_center.prisma
+// Advanced Business Reports, Export History & Report Center (SRS Sec. 23)
+// ============================================================
+
+model ReportExport {
+  id                String    @id @default(cuid())
+
+  businessId        String
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  reportType        String    // "SALES_REGISTER" | "PURCHASE_REGISTER" | "GST_SUMMARY" | "STOCK_VALUATION" | "CUSTOM"
+  reportName        String    // e.g. "Sales Register Log", "Purchase Register", "GST Liability Summary", "Stock Valuation"
+  format            String    // "EXCEL" | "PDF" | "CSV"
+
+  startDate         DateTime?
+  endDate           DateTime?
+  warehouseId       String?
+  filters           Json?
+
+  status            String    @default("COMPLETED") // "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"
+  fileName          String?
+  fileUrl           String?
+  fileSizeBytes     Int?
+  recordCount       Int?
+  errorMessage      String?
+
+  generatedByUserId String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, reportType])
+  @@index([businessId, createdAt])
+  @@map("report_exports")
+}
+
+model SavedReportConfig {
+  id                String    @id @default(cuid())
+
+  businessId        String
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name              String
+  description       String?
+  reportType        String    // "SALES_REGISTER" | "PURCHASE_REGISTER" | "GST_SUMMARY" | "STOCK_VALUATION" | "CUSTOM"
+  filters           Json
+
+  isFavorite        Boolean   @default(false)
+  isScheduled       Boolean   @default(false)
+  frequency         String?   // "DAILY" | "WEEKLY" | "MONTHLY"
+  lastRunAt         DateTime?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, reportType])
+  @@map("saved_report_configs")
+}

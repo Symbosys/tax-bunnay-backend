@@ -73,6 +73,8 @@ model Business {
   gstReturns            GstReturn[]
   gstPayments           GstPayment[]
   sales                 Sale[]
+  reportExports         ReportExport[]
+  savedReports          SavedReportConfig[]
 
   @@map("businesses")
 }

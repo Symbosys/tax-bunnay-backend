@@ -7,27 +7,29 @@ import express, {
 
 import { env } from "./config/env.config";
 import { errorMiddleware } from "./middlewares/error.middleware";
-import { ErrorResponse } from "./utils/response.util";
-import { authRouter } from "./module/user/routes/auth.routes";
-import { onboardingRouter } from "./module/onboarding/routes/onboarding.routes";
 import { customerRouter } from "./module/business/customer/routes/customer.routes";
-import { supplierRouter } from "./module/business/suppliers/routes/supplier.routes";
-import { serviceRouter } from "./module/business/services&work/routes/service.routes";
 import { productRouter } from "./module/business/productListing/routes/product.routes";
+import { serviceRouter } from "./module/business/services&work/routes/service.routes";
+import { supplierRouter } from "./module/business/suppliers/routes/supplier.routes";
+import { expenseRouter } from "./module/expenses&tracker";
 import { gstRouter } from "./module/gstIn/routes/gst.routes";
-import { platformOrganizationRouter } from "./module/platform-Admin/organization/routes/organization.routes";
-import { platformPlanRouter } from "./module/platform-Admin/plans/routes/plan.routes";
-import { posRouter } from "./module/pos";
-import { receiptRouter } from "./module/payment&receipts/receipt/routes/receipt.routes";
-import { paymentEntryRouter } from "./module/payment&receipts/payment-entry/routes/payment-entry.routes";
-import { outstandingRouter } from "./module/payment&receipts/outstanding-analysis/routes/outstanding.routes";
-import { purchaseBillRouter, purchaseReturnRouter } from "./module/purchase";
-import { salesInvoiceRouter, salesReturnRouter } from "./module/salesopration";
 import {
   goodsWarehouseRouter,
   stockValuationRouter,
 } from "./module/inventory&controle";
-import { expenseRouter } from "./module/expenses&tracker";
+import { onboardingRouter } from "./module/onboarding/routes/onboarding.routes";
+import { outstandingRouter } from "./module/payment&receipts/outstanding-analysis/routes/outstanding.routes";
+import { paymentEntryRouter } from "./module/payment&receipts/payment-entry/routes/payment-entry.routes";
+import { receiptRouter } from "./module/payment&receipts/receipt/routes/receipt.routes";
+import { platformOrganizationRouter } from "./module/platform-Admin/organization/routes/organization.routes";
+import { platformPlanRouter } from "./module/platform-Admin/plans/routes/plan.routes";
+import { posRouter } from "./module/pos";
+import { purchaseBillRouter, purchaseReturnRouter } from "./module/purchase";
+import { reportCenterRouter } from "./module/report&center";
+import { salesInvoiceRouter, salesReturnRouter } from "./module/salesopration";
+import { subscriptionRouter } from "./module/subscription";
+import { authRouter } from "./module/user/routes/auth.routes";
+import { ErrorResponse } from "./utils/response.util";
 
 
 
@@ -149,6 +151,12 @@ app.use("/api/v1/inventory/goods-warehouse", goodsWarehouseRouter);
 app.use("/api/inventory/goods-warehouse", goodsWarehouseRouter);
 app.use("/api/v1/expenses", expenseRouter);
 app.use("/api/expenses", expenseRouter);
+app.use("/api/v1/reports", reportCenterRouter);
+app.use("/api/reports", reportCenterRouter);
+app.use("/api/v1/report-center", reportCenterRouter);
+app.use("/api/report-center", reportCenterRouter);
+app.use("/api/v1/subscriptions", subscriptionRouter);
+app.use("/api/subscriptions", subscriptionRouter);
 
 
 /**
