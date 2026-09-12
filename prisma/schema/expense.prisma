@@ -13,8 +13,12 @@ model Expense {
   expenseDate     DateTime        @default(now())
   vendorOrPayee   String?
 
+  expenseNumber   String?         // e.g. EXP-20260912-0001
+  referenceNumber String?         // external invoice/bill reference from vendor
+
   amount          Decimal         @db.Decimal(12, 2)
   gstAmount       Decimal         @default(0) @db.Decimal(12, 2)
+  taxableAmount   Decimal?        @db.Decimal(12, 2)
   paymentMode     PaymentMode     @default(CASH)
 
   attachmentUrl   String?
@@ -27,5 +31,7 @@ model Expense {
   updatedAt       DateTime        @updatedAt
 
   @@index([businessId])
+  @@index([businessId, expenseDate])
+  @@index([businessId, category])
   @@map("expenses")
 }

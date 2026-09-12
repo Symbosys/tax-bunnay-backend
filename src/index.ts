@@ -27,6 +27,7 @@ import {
   goodsWarehouseRouter,
   stockValuationRouter,
 } from "./module/inventory&controle";
+import { expenseRouter } from "./module/expenses&tracker";
 
 
 
@@ -146,6 +147,8 @@ app.use("/api/v1/inventory/stock-valuation", stockValuationRouter);
 app.use("/api/inventory/stock-valuation", stockValuationRouter);
 app.use("/api/v1/inventory/goods-warehouse", goodsWarehouseRouter);
 app.use("/api/inventory/goods-warehouse", goodsWarehouseRouter);
+app.use("/api/v1/expenses", expenseRouter);
+app.use("/api/expenses", expenseRouter);
 
 
 /**
