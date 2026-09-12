@@ -1,4 +1,5 @@
 import { prisma } from "../../../db/prisma";
+import { ErrorResponse } from "../../../utils/response.util";
 import type {
   ClosePosSessionInput,
   HoldPosCartInput,
@@ -9,6 +10,37 @@ import type {
 } from "../validators/pos.validators";
 
 export class PosRepository {
+  /**
+   * Ensure every POS line item exists as an active listed product.
+   */
+  async assertListedProducts(businessId: string, productIds: Array<string | null | undefined>) {
+    const ids = [
+      ...new Set(
+        productIds
+          .map((id) => (id ?? "").trim())
+          .filter((id) => id.length > 0)
+      ),
+    ];
+    if (ids.length === 0) {
+      throw new ErrorResponse(
+        "Only products from Product Listing can be sold. Add the product in Product Listing first.",
+        400
+      );
+    }
+
+    const found = await prisma.product.findMany({
+      where: { businessId, isActive: true, id: { in: ids } },
+      select: { id: true },
+    });
+
+    if (found.length !== ids.length) {
+      throw new ErrorResponse(
+        "One or more products are not listed. Only products added in Product Listing can be sold.",
+        400
+      );
+    }
+  }
+
   /**
    * 1. Query POS Product Catalog with live warehouse stock
    */

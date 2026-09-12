@@ -1,4 +1,3 @@
-import { prisma } from "../../../db/prisma";
 import { ErrorResponse } from "../../../utils/response.util";
 import { posRepository, PosRepository } from "../repo/pos.repo";
 import type {
@@ -32,32 +31,12 @@ export class PosService {
       throw new ErrorResponse("Barcode is required", 400);
     }
     const clean = barcode.trim();
-    let product = await this.repo.findByBarcodeOrSku(businessId, clean);
+    const product = await this.repo.findByBarcodeOrSku(businessId, clean);
     if (!product) {
-      try {
-        await prisma.product.create({
-          data: {
-            businessId,
-            name: `Item #${clean}`,
-            barcode: clean,
-            sku: `SKU-${clean.length > 6 ? clean.substring(clean.length - 6) : clean}`,
-            category: "General",
-            purchasePrice: 40.0,
-            sellingPrice: 50.0,
-            mrp: 60.0,
-            gstRatePercent: 18.0,
-            openingStock: 100,
-            primaryUnit: "PCS",
-            isActive: true,
-          },
-        });
-        product = await this.repo.findByBarcodeOrSku(businessId, clean);
-      } catch (_err) {
-        product = await this.repo.findByBarcodeOrSku(businessId, clean);
-      }
-    }
-    if (!product) {
-      throw new ErrorResponse(`No product found matching barcode "${barcode}"`, 404);
+      throw new ErrorResponse(
+        `Barcode "${clean}" is not in Product Listing. This product cannot be sold until it is listed.`,
+        404
+      );
     }
     return product;
   }
@@ -158,6 +137,11 @@ export class PosService {
     if (!input.items || input.items.length === 0) {
       throw new ErrorResponse("POS Cart is empty. Please add items before checkout.", 400);
     }
+
+    await this.repo.assertListedProducts(
+      businessId,
+      input.items.map((item) => item.productId)
+    );
 
     // Resolve Customer: If no customerId, fetch or create default Walk-in Customer
     let customerId = input.customerId;

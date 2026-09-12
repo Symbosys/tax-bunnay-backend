@@ -242,6 +242,26 @@ export class SalesInvoiceRepository {
         }
       }
 
+      const productIds = [
+        ...new Set(
+          (input.items || [])
+            .map((item) => (item.productId || "").trim())
+            .filter((id) => id.length > 0)
+        ),
+      ];
+      if (productIds.length > 0) {
+        const listed = await tx.product.findMany({
+          where: { businessId, isActive: true, id: { in: productIds } },
+          select: { id: true },
+        });
+        if (listed.length !== productIds.length) {
+          throw new ErrorResponse(
+            "One or more products are not listed. Only products added in Product Listing can be sold.",
+            400
+          );
+        }
+      }
+
       // 3. Compute Item Lines and Totals
       let subtotal = 0;
       let totalCgst = 0;
