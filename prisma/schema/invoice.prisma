@@ -92,6 +92,7 @@ model Invoice {
   creditNotes       CreditNote[]
   recurringProfile  RecurringInvoiceProfile? @relation(fields: [recurringProfileId], references: [id])
   recurringProfileId String?
+  sales             Sale[]
 
   @@unique([businessId, invoiceNumber])
   @@index([businessId, customerId])

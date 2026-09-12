@@ -72,6 +72,7 @@ model Business {
   notifications         Notification[]
   gstReturns            GstReturn[]
   gstPayments           GstPayment[]
+  sales                 Sale[]
 
   @@map("businesses")
 }

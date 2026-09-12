@@ -41,6 +41,7 @@ model Customer {
   ledgerEntries   LedgerEntry[]
   creditNotes     CreditNote[]
   recurringProfiles RecurringInvoiceProfile[]
+  sales           Sale[]
 
   @@index([businessId])
   @@map("customers")

@@ -397,6 +397,64 @@ export class SalesInvoiceRepository {
         include: invoiceInclude,
       });
 
+      // 4b. Record in `sales` and `sale_items` tables
+      const saleNumber = `SALE-${invoiceNumber.replace(/[^a-zA-Z0-9-]/g, "")}`;
+      await tx.sale.create({
+        data: {
+          businessId,
+          saleNumber,
+          saleDate: input.invoiceDate || new Date(),
+          customerId: customerId || undefined,
+          customerName,
+          customerPhone,
+          billingAddress: input.billingAddress,
+          shippingAddress: input.shippingAddress,
+          placeOfSupply: input.placeOfSupply,
+          warehouseId: input.warehouseId,
+          subtotal,
+          discountPercent: input.discountPercent,
+          discountAmount: billDiscountAmount,
+          taxableValue,
+          cgstAmount: totalCgst,
+          sgstAmount: totalSgst,
+          igstAmount: totalIgst,
+          cessAmount: totalCess,
+          roundOff,
+          grandTotal,
+          paidAmount,
+          balanceAmount,
+          changeReturned,
+          paymentMode: input.paymentMode || PaymentMode.CASH,
+          paymentStatus,
+          status: isHeld ? "HELD" : status === InvoiceStatus.DRAFT ? "DRAFT" : "COMPLETED",
+          isHeld,
+          notes: input.notes,
+          termsAndConditions: input.termsAndConditions,
+          invoiceId: invoice.id,
+          createdByUserId: userId,
+          items: {
+            create: processedItems.map((item) => ({
+              productId: item.productId,
+              productName: item.productName,
+              hsnOrSacCode: item.hsnOrSacCode,
+              quantity: item.quantity,
+              unit: item.unit,
+              rate: item.rate,
+              mrp: item.mrp,
+              discountPercent: item.discountPercent,
+              discountAmount: item.discountAmount,
+              taxableValue: item.taxableValue,
+              gstRatePercent: item.gstRatePercent,
+              cgstAmount: item.cgstAmount,
+              sgstAmount: item.sgstAmount,
+              igstAmount: item.igstAmount,
+              cessAmount: item.cessAmount,
+              lineTotal: item.lineTotal,
+            })),
+          },
+        },
+      });
+
       // 5. Stock Movements (Deduct inventory for confirmed/printed sales if product exists)
       if (!isHeld && status !== InvoiceStatus.DRAFT) {
         const warehouseId = await this.resolveWarehouseId(businessId, input.warehouseId);

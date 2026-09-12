@@ -243,6 +243,38 @@ export class PosController {
     const summary = await this.service.getDashboardSummary(businessId);
     return SuccessResponse(res, "POS dashboard summary retrieved", summary, 200);
   });
+
+  /**
+   * 16. Get all sales from `sales` table
+   * GET /api/v1/pos/sales
+   */
+  getSales = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const businessId = this.extractBusinessId(req);
+    const { q, customerId, paymentMode, status, page, limit } = req.query;
+
+    const data = await this.service.getSales(businessId, {
+      q: q as string,
+      customerId: customerId as string,
+      paymentMode: paymentMode as string,
+      status: status as string,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+
+    return SuccessResponse(res, "Sales list retrieved successfully", data, 200);
+  });
+
+  /**
+   * 17. Get sale by ID from `sales` table
+   * GET /api/v1/pos/sales/:id
+   */
+  getSaleById = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const businessId = this.extractBusinessId(req);
+    const saleId = req.params.id as string;
+
+    const sale = await this.service.getSaleById(businessId, saleId);
+    return SuccessResponse(res, "Sale retrieved successfully", sale, 200);
+  });
 }
 
 export const posController = new PosController();

@@ -150,8 +150,8 @@ export class PosService {
       customerId = walkIn.id;
     }
 
-    // Record invoice & update inventory
-    const invoice = await this.repo.createPosSale(
+    // Record invoice, sale & update inventory
+    const { invoice, sale } = await this.repo.createPosSale(
       businessId,
       input,
       customerId,
@@ -163,6 +163,7 @@ export class PosService {
     const receiptData = this.formatThermalReceipt(fullInvoice, cashierName);
 
     return {
+      sale,
       invoice,
       receipt: receiptData,
     };
@@ -294,6 +295,34 @@ export class PosService {
    */
   async getDashboardSummary(businessId: string) {
     return this.repo.getDailySummary(businessId);
+  }
+
+  /**
+   * 17. Query Recorded Sales from `sales` table
+   */
+  async getSales(
+    businessId: string,
+    params: {
+      q?: string;
+      customerId?: string;
+      paymentMode?: string;
+      status?: string;
+      page?: number;
+      limit?: number;
+    }
+  ) {
+    return this.repo.findSales(businessId, params);
+  }
+
+  /**
+   * 18. Get Sale by ID
+   */
+  async getSaleById(businessId: string, saleId: string) {
+    const sale = await this.repo.findSaleById(businessId, saleId);
+    if (!sale) {
+      throw new ErrorResponse("Sale record not found", 404);
+    }
+    return sale;
   }
 }
 

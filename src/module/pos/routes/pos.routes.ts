@@ -28,10 +28,12 @@ router.post("/session/close", posController.closeSession);
 router.get("/session/history", posController.getSessionHistory);
 
 /**
- * POS Checkout & Fast Billing
+ * POS Checkout & Fast Billing & Sales Query
  */
 router.post("/checkout", posController.checkout);
 router.post("/sales", posController.checkout);
+router.get("/sales", posController.getSales);
+router.get("/sales/:id", posController.getSaleById);
 
 /**
  * Park / Hold & Resume Transactions

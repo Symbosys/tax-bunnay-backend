@@ -378,7 +378,76 @@ export class PosRepository {
         },
       });
 
-      // 5. Create Invoice Line Items
+      // 5. Create Sale Record in `sales` and `sale_items` tables
+      const saleNumber = invoiceNumber.replace("INV-POS-", "SALE-POS-");
+      const sale = await tx.sale.create({
+        data: {
+          businessId,
+          saleNumber,
+          saleDate: new Date(),
+          customerId,
+          customerName: customer?.name || input.customerName || "Walk-in Customer",
+          customerPhone: customer?.mobileNumber || "",
+          billingAddress: customer?.billingAddress || "Retail Counter",
+          shippingAddress: customer?.shippingAddress || "Retail Counter",
+          placeOfSupply: customer?.state || business?.state || "Delhi",
+          warehouseId: warehouseDbId,
+          subtotal: input.subtotal,
+          discountPercent: input.cartDiscountPercent,
+          discountAmount: input.cartDiscountAmount,
+          taxableValue: input.subtotal - input.cartDiscountAmount,
+          cgstAmount: Number(totalCgst.toFixed(2)),
+          sgstAmount: Number(totalSgst.toFixed(2)),
+          igstAmount: Number(totalIgst.toFixed(2)),
+          cessAmount: Number(totalCess.toFixed(2)),
+          roundOff: input.roundOff,
+          grandTotal: input.grandTotal,
+          paidAmount: paymentStatusEnum === "PAID" ? input.grandTotal : 0,
+          balanceAmount: paymentStatusEnum === "PAID" ? 0 : input.grandTotal,
+          changeReturned: input.changeDue || 0,
+          paymentMode: paymentModeEnum,
+          paymentStatus: paymentStatusEnum,
+          status: "COMPLETED",
+          notes: input.notes || "POS Fast Billing Sale",
+          termsAndConditions: input.termsConditions || "Goods once sold are not returnable.",
+          invoiceId: invoice.id,
+          createdByUserId: userId,
+          items: {
+            create: input.items.map((item) => {
+              const taxable = item.taxableValue || item.rate * item.quantity;
+              const rate = item.gstRate || 0;
+              const cgst = isInterState ? 0 : Number((taxable * (rate / 200)).toFixed(2));
+              const sgst = isInterState ? 0 : Number((taxable * (rate / 200)).toFixed(2));
+              const igst = isInterState ? Number((taxable * (rate / 100)).toFixed(2)) : 0;
+              const lineTotal = taxable + cgst + sgst + igst + (item.cess || 0);
+
+              return {
+                productId: item.productId,
+                productName: item.name,
+                hsnOrSacCode: item.hsnSac,
+                quantity: item.quantity,
+                unit: item.unit || "PCS",
+                rate: item.rate,
+                discountPercent: item.discountPercentage || 0,
+                discountAmount: item.discountAmount || 0,
+                taxableValue: taxable,
+                gstRatePercent: rate,
+                cgstAmount: cgst,
+                sgstAmount: sgst,
+                igstAmount: igst,
+                cessAmount: item.cess || 0,
+                lineTotal: lineTotal,
+              };
+            }),
+          },
+        },
+        include: {
+          items: true,
+          customer: true,
+        },
+      });
+
+      // 6. Create Invoice Line Items
       for (const item of input.items) {
         await tx.invoiceItem.create({
           data: {
@@ -401,7 +470,7 @@ export class PosRepository {
           },
         });
 
-        // 6. Record Stock Deduction (Negative quantity for StockMovement)
+        // 7. Record Stock Deduction (Negative quantity for StockMovement)
         if (warehouseDbId && item.productId) {
           await tx.stockMovement.create({
             data: {
@@ -411,14 +480,14 @@ export class PosRepository {
               movementType: "SALES",
               quantity: -Math.abs(item.quantity),
               unitCost: item.rate,
-              referenceType: "INVOICE",
-              referenceId: invoice.id,
+              referenceType: "SALE",
+              referenceId: sale.id,
             },
           });
         }
       }
 
-      // 7. If paid, create Receipt record
+      // 8. If paid, create Receipt record
       if (paymentStatusEnum === "PAID") {
         const receipt = await tx.receipt.create({
           data: {
@@ -441,7 +510,7 @@ export class PosRepository {
         });
       }
 
-      // 8. Record Ledger Entry
+      // 9. Record Ledger Entry
       await tx.ledgerEntry.create({
         data: {
           businessId,
@@ -470,7 +539,7 @@ export class PosRepository {
         });
       }
 
-      return invoice;
+      return { invoice, sale };
     });
   }
 
@@ -787,6 +856,97 @@ export class PosRepository {
       creditRevenue,
       activeHeldCarts,
     };
+  }
+
+  /**
+   * 12. Query Recorded Sales from `sales` table
+   */
+  async findSales(
+    businessId: string,
+    params: {
+      q?: string;
+      customerId?: string;
+      paymentMode?: string;
+      status?: string;
+      page?: number;
+      limit?: number;
+    }
+  ) {
+    const { q, customerId, paymentMode, status, page = 1, limit = 50 } = params;
+    const where: any = { businessId };
+
+    if (customerId) where.customerId = customerId;
+    if (paymentMode) where.paymentMode = paymentMode as any;
+    if (status) where.status = status;
+    if (q && q.trim().length > 0) {
+      where.OR = [
+        { saleNumber: { contains: q.trim(), mode: "insensitive" } },
+        { customerName: { contains: q.trim(), mode: "insensitive" } },
+        { customerPhone: { contains: q.trim() } },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const [total, sales] = await Promise.all([
+      prisma.sale.count({ where }),
+      prisma.sale.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  barcode: true,
+                  sku: true,
+                  primaryUnit: true,
+                },
+              },
+            },
+          },
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              mobileNumber: true,
+              email: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      sales,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * 13. Get Sale by ID from `sales` table
+   */
+  async findSaleById(businessId: string, saleId: string) {
+    return prisma.sale.findFirst({
+      where: { id: saleId, businessId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        customer: true,
+        invoice: true,
+      },
+    });
   }
 }
 

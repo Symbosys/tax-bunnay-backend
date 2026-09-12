@@ -55,6 +55,7 @@ model Product {
   priceListEntries  ProductPrice[]
   bomComponentIn    BomItem[]
   productionOutputs ProductionOrder[] @relation("FinishedProduct")
+  saleItems         SaleItem[]
 
   @@index([businessId])
   @@index([supplierId])
