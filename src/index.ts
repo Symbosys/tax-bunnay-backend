@@ -11,6 +11,7 @@ import { customerRouter } from "./module/business/customer/routes/customer.route
 import { productRouter } from "./module/business/productListing/routes/product.routes";
 import { serviceRouter } from "./module/business/services&work/routes/service.routes";
 import { supplierRouter } from "./module/business/suppliers/routes/supplier.routes";
+import { generalLedgerRouter } from "./module/double-entry-accounting";
 import { expenseRouter } from "./module/expenses&tracker";
 import { gstRouter } from "./module/gstIn/routes/gst.routes";
 import {
@@ -157,6 +158,12 @@ app.use("/api/v1/report-center", reportCenterRouter);
 app.use("/api/report-center", reportCenterRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/subscriptions", subscriptionRouter);
+app.use("/api/v1/accounting/general-ledger", generalLedgerRouter);
+app.use("/api/accounting/general-ledger", generalLedgerRouter);
+app.use("/api/v1/double-entry/general-ledger", generalLedgerRouter);
+app.use("/api/double-entry/general-ledger", generalLedgerRouter);
+app.use("/api/v1/general-ledger", generalLedgerRouter);
+app.use("/api/general-ledger", generalLedgerRouter);
 
 
 /**
