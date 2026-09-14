@@ -11,7 +11,7 @@ import { customerRouter } from "./module/business/customer/routes/customer.route
 import { productRouter } from "./module/business/productListing/routes/product.routes";
 import { serviceRouter } from "./module/business/services&work/routes/service.routes";
 import { supplierRouter } from "./module/business/suppliers/routes/supplier.routes";
-import { generalLedgerRouter } from "./module/double-entry-accounting";
+import { chartAccountRouter, generalLedgerRouter } from "./module/double-entry-accounting";
 import { expenseRouter } from "./module/expenses&tracker";
 import { gstRouter } from "./module/gstIn/routes/gst.routes";
 import {
@@ -164,6 +164,11 @@ app.use("/api/v1/double-entry/general-ledger", generalLedgerRouter);
 app.use("/api/double-entry/general-ledger", generalLedgerRouter);
 app.use("/api/v1/general-ledger", generalLedgerRouter);
 app.use("/api/general-ledger", generalLedgerRouter);
+app.use("/api/v1/accounting/chart-of-accounts", chartAccountRouter);
+app.use("/api/accounting/chart-of-accounts", chartAccountRouter);
+app.use("/api/v1/accounting/chart-account", chartAccountRouter);
+app.use("/api/accounting/chart-account", chartAccountRouter);
+app.use("/api/v1/double-entry/chart-of-accounts", chartAccountRouter);
 
 
 /**
