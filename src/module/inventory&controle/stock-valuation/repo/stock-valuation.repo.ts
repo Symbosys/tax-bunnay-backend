@@ -155,6 +155,7 @@ export class StockValuationRepository {
         purchasePrice: true,
         openingStock: true,
         quantity: true,
+        minStockLevel: true,
         warehouseId: true,
         primaryUnit: true,
       },

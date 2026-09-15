@@ -1,4 +1,5 @@
 import { ErrorResponse } from "../../../../utils/response.util";
+import { notificationService } from "../../../notification";
 import {
   goodsWarehouseRepository,
   GoodsWarehouseRepository,
@@ -277,7 +278,18 @@ export class GoodsWarehouseService {
       productNameById[p.id] = p.name;
     }
 
-    return this.toTransferLog(created, productNameById);
+    const transferLog = this.toTransferLog(created, productNameById);
+
+    // Trigger stock transfer notification
+    notificationService.notifyStockTransfer({
+      businessId,
+      transferNumber: transferLog.referenceNumber,
+      fromWarehouse: fromWarehouse.name,
+      toWarehouse: toWarehouse.name,
+      itemCount: resolvedItems.length,
+    }).catch((err) => console.error("[StockTransferNotification] Error dispatching transfer notification:", err));
+
+    return transferLog;
   }
 }
 

@@ -29,6 +29,7 @@ import { purchaseBillRouter, purchaseReturnRouter } from "./module/purchase";
 import { reportCenterRouter } from "./module/report&center";
 import { salesInvoiceRouter, salesReturnRouter } from "./module/salesopration";
 import { subscriptionRouter } from "./module/subscription";
+import { notificationRouter } from "./module/notification";
 import { authRouter } from "./module/user/routes/auth.routes";
 import { ErrorResponse } from "./utils/response.util";
 
@@ -181,6 +182,8 @@ app.use("/api/v1/accounting/financial-statements", financialStatementsRouter);
 app.use("/api/accounting/financial-statements", financialStatementsRouter);
 app.use("/api/v1/double-entry/financial-statements", financialStatementsRouter);
 app.use("/api/double-entry/financial-statements", financialStatementsRouter);
+app.use("/api/v1/notifications", notificationRouter);
+app.use("/api/notifications", notificationRouter);
 
 
 /**

@@ -1,4 +1,5 @@
 import { ErrorResponse } from "../../../utils/response.util";
+import { notificationService } from "../../notification";
 import {
   SubscriptionRepository,
   subscriptionRepo,
@@ -163,6 +164,14 @@ export class SubscriptionService {
       paymentGateway: input.paymentGateway,
       gatewayPaymentId: input.gatewayPaymentId,
     });
+
+    // Trigger Subscription Activated Notification
+    notificationService.notifySubscriptionActivated({
+      businessId,
+      planName: plan.name,
+      billingCycle,
+      amount,
+    }).catch((err) => console.error("[SubscriptionNotification] Error dispatching notification:", err));
 
     return {
       message: `Successfully subscribed to ${plan.name} plan (${billingCycle.toLowerCase()})!`,

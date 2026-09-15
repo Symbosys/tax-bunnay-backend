@@ -1,4 +1,5 @@
 import { ErrorResponse } from "../../../../utils/response.util";
+import { notificationService } from "../../../notification";
 import {
   stockValuationRepository,
   StockValuationRepository,
@@ -262,6 +263,27 @@ export class StockValuationService {
             : Number(product.purchasePrice ?? 0),
       }
     );
+
+    // Notification triggers for Stock Adjustment and Low Stock
+    const newStock = Number((currentStock + input.quantity).toFixed(3));
+    const minStock = Number(product.minStockLevel ?? 0);
+
+    notificationService.notifyStockAdjustment({
+      businessId,
+      productId: product.id,
+      productName: product.name,
+      quantity: input.quantity,
+    }).catch((err) => console.error("[StockNotification] Error dispatching adjustment notification:", err));
+
+    if (minStock > 0 && newStock <= minStock) {
+      notificationService.notifyLowStock({
+        businessId,
+        productId: product.id,
+        productName: product.name,
+        currentStock: newStock,
+        minStockLevel: minStock,
+      }).catch((err) => console.error("[StockNotification] Error dispatching low stock notification:", err));
+    }
 
     return this.toLedgerEntry(movement);
   }
