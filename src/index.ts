@@ -6,6 +6,7 @@ import express, {
 } from "express";
 
 import { env } from "./config/env.config";
+import "./config/redis.config";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { customerRouter } from "./module/business/customer/routes/customer.routes";
 import { productRouter } from "./module/business/productListing/routes/product.routes";
