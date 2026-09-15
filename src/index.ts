@@ -9,6 +9,7 @@ import { env } from "./config/env.config";
 import "./config/redis.config";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import { customerRouter } from "./module/business/customer/routes/customer.routes";
+import { dashboardRouter } from "./module/dashboard";
 import { productRouter } from "./module/business/productListing/routes/product.routes";
 import { serviceRouter } from "./module/business/services&work/routes/service.routes";
 import { supplierRouter } from "./module/business/suppliers/routes/supplier.routes";
@@ -92,6 +93,8 @@ app.get("/", (_req: Request, res: Response) => {
  */
 app.use("/api/v1/auth", authRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
+app.use("/api/dashboard", dashboardRouter);
 app.use("/api/v1/onboarding", onboardingRouter);
 app.use("/api/onboarding", onboardingRouter);
 app.use("/api/v1/customers", customerRouter);
