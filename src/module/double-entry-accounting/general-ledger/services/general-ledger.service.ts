@@ -341,8 +341,8 @@ export class GeneralLedgerService {
     ];
 
     const rows = data.items.map((it) => [
-      `"${it.date}"`,
-      `"${it.time}"`,
+      `="${it.date}"`,
+      `="${it.time}"`,
       `"${it.voucherNo}"`,
       `"${it.voucherType}"`,
       `"${it.account.replace(/"/g, '""')}"`,
