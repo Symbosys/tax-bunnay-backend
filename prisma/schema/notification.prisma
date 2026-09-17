@@ -28,19 +28,4 @@ model Notification {
   @@map("notifications")
 }
 
-/// Stores FCM device registration tokens for push notifications across mobile and web devices
-model DeviceToken {
-  id         String    @id @default(cuid())
-  userId     String?
-  businessId String?
-  token      String    @unique
-  deviceType String?   @default("android")
-  isActive   Boolean   @default(true)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  @@index([userId])
-  @@index([businessId])
-  @@map("device_tokens")
-}
 

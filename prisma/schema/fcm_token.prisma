@@ -1,0 +1,22 @@
+// ============================================================
+// fcm_token.prisma
+// FCM (Firebase Cloud Messaging) Device Registration Tokens
+// Stores push notification tokens for Android, iOS, and Web devices
+// Linked with Organization/Business and User.
+// ============================================================
+
+model FcmToken {
+  id         String    @id @default(cuid())
+  userId     String?
+  businessId String?
+  token      String    @unique
+  deviceType String?   @default("android") // "android" | "ios" | "web"
+  deviceId   String?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([businessId])
+  @@map("fcm_tokens")
+}

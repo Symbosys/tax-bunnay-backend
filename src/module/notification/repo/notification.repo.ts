@@ -12,24 +12,24 @@ export class NotificationRepository {
     userId?: string | null;
     businessId?: string | null;
   }) {
-    const existing = await prisma.deviceToken.findUnique({
+    const existing = await prisma.fcmToken.findUnique({
       where: { token: data.token },
     });
 
     if (existing) {
-      return prisma.deviceToken.update({
+      return prisma.fcmToken.update({
         where: { token: data.token },
         data: {
           isActive: true,
           deviceType: data.deviceType ?? existing.deviceType,
-          userId: data.userId ?? existing.userId,
-          businessId: data.businessId ?? existing.businessId,
+          userId: data.userId !== undefined ? data.userId : existing.userId,
+          businessId: data.businessId !== undefined ? data.businessId : existing.businessId,
           updatedAt: new Date(),
         },
       });
     }
 
-    return prisma.deviceToken.create({
+    return prisma.fcmToken.create({
       data: {
         token: data.token,
         deviceType: data.deviceType ?? "android",
@@ -64,7 +64,7 @@ export class NotificationRepository {
       ];
     }
 
-    return prisma.deviceToken.findMany({
+    return prisma.fcmToken.findMany({
       where,
       orderBy: { updatedAt: "desc" },
     });
@@ -74,7 +74,7 @@ export class NotificationRepository {
    * Deactivate a device token (e.g. on logout or invalid token)
    */
   async deactivateDeviceToken(token: string) {
-    return prisma.deviceToken.updateMany({
+    return prisma.fcmToken.updateMany({
       where: { token },
       data: { isActive: false, updatedAt: new Date() },
     });
