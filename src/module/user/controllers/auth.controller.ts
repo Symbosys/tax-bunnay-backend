@@ -4,6 +4,7 @@ import { asyncHandler } from "../../../middlewares/error.middleware";
 import { SuccessResponse } from "../../../utils/response.util";
 import { authService, AuthService } from "../services/auth.service";
 import {
+  deleteAccountSchema,
   loginSchema,
   refreshTokenSchema,
   registerSchema,
@@ -110,6 +111,19 @@ export class AuthController {
 
     return SuccessResponse(res, "User profile retrieved successfully", profile, 200);
   });
+
+  /**
+   * Public Organization Account Deletion
+   * POST /api/v1/auth/delete-account
+   */
+  deleteAccount = asyncHandler(async (req: Request, res: Response) => {
+    const validatedData = deleteAccountSchema.parse(req.body);
+
+    const result = await this.service.deleteAccount(validatedData);
+
+    return SuccessResponse(res, result.message, result, 200);
+  });
 }
 
 export const authController = new AuthController();
+

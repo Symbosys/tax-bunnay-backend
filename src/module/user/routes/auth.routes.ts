@@ -33,6 +33,13 @@ authRouter.post("/refresh-token", authController.refreshToken);
 authRouter.post("/logout", authController.logout);
 
 /**
+ * @route   POST /api/v1/auth/delete-account
+ * @desc    Public deletion of Organization / User Account with email and password
+ * @access  Public
+ */
+authRouter.post("/delete-account", authController.deleteAccount);
+
+/**
  * @route   GET /api/v1/auth/me
  * @desc    Get current authenticated user profile
  * @access  Protected
@@ -41,3 +48,4 @@ authRouter.get("/me", protect, authController.getMe);
 
 export { authRouter };
 export default authRouter;
+

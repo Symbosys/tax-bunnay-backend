@@ -122,3 +122,27 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+/**
+ * Validation schema for Deleting User / Organization Account
+ */
+export const deleteAccountSchema = z.object({
+  email: z
+    .string({
+      error: "Email address is required",
+    })
+    .trim()
+    .toLowerCase()
+    .email("Please provide a valid email address"),
+
+  password: z
+    .string({
+      error: "Password is required",
+    })
+    .min(1, "Password is required to confirm account deletion"),
+
+  reason: z.string().trim().optional(),
+});
+
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+

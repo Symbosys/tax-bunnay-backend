@@ -205,6 +205,52 @@ export class AuthRepository {
   async countUsers(): Promise<number> {
     return prisma.user.count();
   }
+
+  /**
+   * Permanently delete / deactivate user account and all associated sessions/memberships
+   */
+  async deleteUserAccount(userId: string) {
+    return prisma.$transaction(
+      async (tx) => {
+        // 1. Delete all active sessions
+        await tx.session.deleteMany({
+          where: { userId },
+        });
+
+        // 2. Delete business memberships
+        await tx.businessUser.deleteMany({
+          where: { userId },
+        });
+
+        // 3. Deactivate owned businesses
+        await tx.business.updateMany({
+          where: { ownerId: userId },
+          data: { isActive: false },
+        });
+
+        // 4. Nullify user foreign key in audit logs if present
+        await tx.auditLog.updateMany({
+          where: { userId },
+          data: { userId: null },
+        });
+
+        // 5. Deactivate user and randomize email
+        const user = await tx.user.findUnique({ where: { id: userId } });
+        if (!user) return null;
+
+        const scrambledEmail = `deleted_${Date.now()}_${user.email}`;
+        return tx.user.update({
+          where: { id: userId },
+          data: {
+            isActive: false,
+            email: scrambledEmail,
+          },
+        });
+      },
+      { maxWait: 10000, timeout: 20000 }
+    );
+  }
 }
 
 export const authRepo = new AuthRepository();
+

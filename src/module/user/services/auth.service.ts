@@ -3,7 +3,11 @@ import env from "../../../config/env.config";
 import { signToken, verifyToken } from "../../../utils/jwt.util";
 import { ErrorResponse } from "../../../utils/response.util";
 import { authRepo, AuthRepository } from "../repo/auth.repo";
-import type { LoginInput, RegisterInput } from "../validators/auth.validators";
+import type {
+  DeleteAccountInput,
+  LoginInput,
+  RegisterInput,
+} from "../validators/auth.validators";
 
 export class AuthService {
   private repo: AuthRepository;
@@ -249,6 +253,49 @@ export class AuthService {
     }
     return this.sanitizeUser(user);
   }
+
+  /**
+   * Public Organization / User Account Deletion
+   * Requires valid email and password confirmation
+   */
+  async deleteAccount(input: DeleteAccountInput) {
+    const email = input.email.toLowerCase().trim();
+
+    // 1. Find user by email
+    const user = await this.repo.findUserByEmail(email);
+    if (!user) {
+      throw new ErrorResponse(
+        "Invalid email or password. No account found associated with this email address.",
+        401
+      );
+    }
+
+    // 2. Strict Protection: Platform Administrators cannot be deleted via the public endpoint
+    if (user.isPlatformAdmin) {
+      throw new ErrorResponse(
+        "Platform Administrator accounts cannot be deleted through the public portal. Please contact system operations.",
+        403
+      );
+    }
+
+    // 3. Verify password
+    const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new ErrorResponse(
+        "Invalid credentials. The password provided does not match our records.",
+        401
+      );
+    }
+
+    // 4. Perform atomic account deletion & deactivation
+    await this.repo.deleteUserAccount(user.id);
+
+    return {
+      success: true,
+      message: `Account for "${user.email}" and all associated organization data have been successfully deleted and deactivated.`,
+    };
+  }
 }
 
 export const authService = new AuthService();
+
