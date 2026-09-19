@@ -448,63 +448,88 @@ export class PlatformOrganizationRepository {
 
       // 1. Update business fields
       const dataToUpdate: Prisma.BusinessUpdateInput = {};
-      if (input.name !== undefined) {
+      if (input.name !== undefined && input.name !== null && input.name.trim().length > 0) {
         dataToUpdate.businessName = input.name.trim();
         dataToUpdate.legalName = input.name.trim();
       }
       if (input.domain !== undefined) {
-        dataToUpdate.tradeName = input.domain.trim().toLowerCase();
+        dataToUpdate.tradeName = input.domain && input.domain.trim().length > 0 ? input.domain.trim().toLowerCase() : null;
       }
       if (input.code !== undefined) {
-        dataToUpdate.cinOrLlpin = input.code.trim().toUpperCase();
+        dataToUpdate.cinOrLlpin = input.code && input.code.trim().length > 0 ? input.code.trim().toUpperCase() : null;
       }
       if (input.gstin !== undefined) {
-        dataToUpdate.gstin = input.gstin?.trim() || null;
+        dataToUpdate.gstin = input.gstin && input.gstin.trim().length > 0 ? input.gstin.trim().toUpperCase() : null;
       }
       if (input.contactEmail !== undefined) {
-        dataToUpdate.email = input.contactEmail.trim().toLowerCase();
+        dataToUpdate.email = input.contactEmail && input.contactEmail.trim().length > 0 ? input.contactEmail.trim().toLowerCase() : null;
       }
       if (input.contactPhone !== undefined) {
-        dataToUpdate.mobileNumber = input.contactPhone?.trim() || null;
+        dataToUpdate.mobileNumber = input.contactPhone && input.contactPhone.trim().length > 0 ? input.contactPhone.trim() : null;
       }
-      if (input.status !== undefined) {
-        dataToUpdate.isActive = input.status !== "suspended";
+      if (input.status !== undefined && input.status !== null) {
+        const normStatus = input.status.trim().toLowerCase();
+        dataToUpdate.isActive = normStatus !== "suspended";
       }
 
-      const updatedBusiness = await tx.business.update({
-        where: { id },
-        data: dataToUpdate,
-      });
-
-      // 2. Update owner details if provided
-      if (input.contactPerson || input.contactPhone || input.contactEmail) {
-        await tx.user.update({
-          where: { id: existing.ownerId },
-          data: {
-            fullName: input.contactPerson?.trim() || existing.owner.fullName,
-            phone: input.contactPhone !== undefined ? input.contactPhone?.trim() || null : existing.owner.phone,
-            email: input.contactEmail?.trim().toLowerCase() || existing.owner.email,
-          },
+      if (Object.keys(dataToUpdate).length > 0) {
+        await tx.business.update({
+          where: { id },
+          data: dataToUpdate,
         });
+      }
+
+      // 2. Update owner details if provided and owner exists
+      if (existing.ownerId && (input.contactPerson || input.contactPhone || input.contactEmail)) {
+        const ownerUpdateData: Prisma.UserUpdateInput = {};
+        if (input.contactPerson && input.contactPerson.trim().length > 0) {
+          ownerUpdateData.fullName = input.contactPerson.trim();
+        }
+        if (input.contactPhone !== undefined) {
+          ownerUpdateData.phone = input.contactPhone && input.contactPhone.trim().length > 0 ? input.contactPhone.trim() : null;
+        }
+        if (input.contactEmail && input.contactEmail.trim().length > 0) {
+          const newEmail = input.contactEmail.trim().toLowerCase();
+          if (newEmail !== existing.owner?.email) {
+            const emailCheck = await tx.user.findUnique({
+              where: { email: newEmail },
+            });
+            if (!emailCheck || emailCheck.id === existing.ownerId) {
+              ownerUpdateData.email = newEmail;
+            }
+          }
+        }
+
+        if (Object.keys(ownerUpdateData).length > 0) {
+          await tx.user.update({
+            where: { id: existing.ownerId },
+            data: ownerUpdateData,
+          });
+        }
       }
 
       // 3. Update plan / subscription if planName or status is provided
       if (input.planName || input.status) {
         let planId = existing.subscription?.planId;
 
-        if (input.planName && (!existing.subscription || existing.subscription.plan.name !== input.planName)) {
+        if (input.planName && input.planName.trim().length > 0) {
+          const cleanPlanName = input.planName.trim();
           let plan = await tx.plan.findFirst({
-            where: { name: { equals: input.planName, mode: "insensitive" } },
+            where: { name: { equals: cleanPlanName, mode: "insensitive" } },
           });
 
           if (!plan) {
+            const normalizedPlan = cleanPlanName.toLowerCase();
+            const price = normalizedPlan === "enterprise" ? 6999.0 : (normalizedPlan === "growth" ? 2499.0 : 999.0);
+            const defaultUsers = normalizedPlan === "enterprise" ? 100 : (normalizedPlan === "growth" ? 15 : 3);
+
             plan = await tx.plan.create({
               data: {
-                name: input.planName,
-                description: `${input.planName} SaaS Plan`,
-                price: input.planName === "Enterprise" ? 6999.0 : (input.planName === "Growth" ? 2499.0 : 999.0),
+                name: cleanPlanName,
+                description: `${cleanPlanName} SaaS Plan`,
+                price,
                 billingCycle: "MONTHLY",
-                maxUsers: input.maxUsersLimit || (input.planName === "Enterprise" ? 100 : (input.planName === "Growth" ? 15 : 3)),
+                maxUsers: input.maxUsersLimit || defaultUsers,
                 isActive: true,
               },
             });
@@ -514,10 +539,11 @@ export class PlatformOrganizationRepository {
 
         let newStatus: SubscriptionStatus | undefined;
         if (input.status) {
-          if (input.status === "active") newStatus = "ACTIVE";
-          else if (input.status === "trial") newStatus = "TRIALING";
-          else if (input.status === "suspended") newStatus = "CANCELLED";
-          else if (input.status === "pending") newStatus = "TRIALING";
+          const norm = input.status.trim().toLowerCase();
+          if (norm === "active") newStatus = "ACTIVE";
+          else if (norm === "trial") newStatus = "TRIALING";
+          else if (norm === "suspended") newStatus = "CANCELLED";
+          else if (norm === "pending") newStatus = "TRIALING";
         }
 
         if (existing.subscription) {
@@ -542,9 +568,12 @@ export class PlatformOrganizationRepository {
           });
         }
       }
-
-      return this.findById(id);
+    }, {
+      maxWait: 10000,
+      timeout: 20000,
     });
+
+    return this.findById(id);
   }
 
   /**

@@ -103,29 +103,73 @@ export const updatePlatformOrganizationSchema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .min(2)
-    .max(10)
-    .regex(/^[A-Z0-9_-]+$/)
-    .optional(),
-  domain: z.string().trim().toLowerCase().min(3).optional(),
+    .max(50)
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  domain: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(150)
+    .optional()
+    .nullable()
+    .or(z.literal("")),
   gstin: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(
-      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
-      "Invalid GSTIN format"
-    )
+    .max(30)
     .optional()
     .nullable()
     .or(z.literal("")),
-  contactPerson: z.string().trim().min(1).max(120).optional(),
-  contactEmail: z.string().trim().toLowerCase().email().optional(),
-  contactPhone: z.string().trim().optional().nullable().or(z.literal("")),
-  planName: SaaSPlanEnum.optional(),
-  status: TenantStatusEnum.optional(),
-  maxUsersLimit: z.coerce.number().int().positive().optional(),
-  storageLimitGb: z.coerce.number().positive().optional(),
+  contactPerson: z
+    .string()
+    .trim()
+    .max(120)
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  contactEmail: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  contactPhone: z
+    .string()
+    .trim()
+    .max(30)
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  planName: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  status: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  maxUsersLimit: z
+    .coerce
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .nullable(),
+  storageLimitGb: z
+    .coerce
+    .number()
+    .positive()
+    .optional()
+    .nullable(),
 });
 
 export type UpdatePlatformOrganizationInput = z.infer<typeof updatePlatformOrganizationSchema>;

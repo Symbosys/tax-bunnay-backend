@@ -242,16 +242,16 @@ export class PlatformOrganizationService {
       throw new ErrorResponse(`Organization with ID "${id}" not found`, 404);
     }
 
-    // Check code collision
-    if (input.code && input.code.toUpperCase() !== existing.cinOrLlpin) {
+    // Check code collision only if code is provided, non-empty, and different from existing
+    if (input.code && input.code.trim().toUpperCase() !== (existing.cinOrLlpin || "").toUpperCase()) {
       const codeTaken = await this.repo.findByCode(input.code);
       if (codeTaken && codeTaken.id !== id) {
         throw new ErrorResponse(`Code "${input.code}" is already in use by another organization`, 409);
       }
     }
 
-    // Check domain collision
-    if (input.domain && input.domain.toLowerCase() !== existing.tradeName) {
+    // Check domain collision only if domain is provided, non-empty, and different from existing
+    if (input.domain && input.domain.trim().toLowerCase() !== (existing.tradeName || "").toLowerCase()) {
       const domainTaken = await this.repo.findByDomain(input.domain);
       if (domainTaken && domainTaken.id !== id) {
         throw new ErrorResponse(`Domain "${input.domain}" is already in use by another organization`, 409);
