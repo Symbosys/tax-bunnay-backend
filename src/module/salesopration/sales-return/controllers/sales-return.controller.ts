@@ -19,7 +19,6 @@ export class SalesReturnController {
   constructor(service: SalesReturnService = salesReturnService) {
     this.service = service;
   }
-
   /**
    * Helper to extract active Business ID from headers, query, body, or session
    */
@@ -54,7 +53,6 @@ export class SalesReturnController {
       400
     );
   }
-
   /**
    * GET /api/v1/sales/returns/next-number
    */
