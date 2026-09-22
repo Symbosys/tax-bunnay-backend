@@ -60,7 +60,6 @@ export class SalesReturnRepository {
     });
     return anyWh?.id ?? null;
   }
-
   /**
    * Auto-generates the next sequential Credit Note / Return Number
    */
@@ -98,7 +97,6 @@ export class SalesReturnRepository {
         const next = await this.getNextReturnNumber(businessId);
         returnNumber = next.returnNumber;
       }
-
       // Check uniqueness
       const existing = await tx.salesReturn.findUnique({
         where: {
@@ -129,7 +127,6 @@ export class SalesReturnRepository {
           invoiceId = inv.id;
         }
       }
-
       // 3. Process line items
       let subtotal = 0;
       let totalTaxable = 0;
