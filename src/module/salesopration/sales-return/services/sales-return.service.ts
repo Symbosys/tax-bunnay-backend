@@ -16,14 +16,12 @@ export class SalesReturnService {
   constructor(repo: SalesReturnRepository = salesReturnRepository) {
     this.repo = repo;
   }
-
   /**
    * 1. Get next auto-generated Credit Note / Return sequence & formatted number
    */
   async getNextNumber(businessId: string) {
     return this.repo.getNextReturnNumber(businessId);
   }
-
   /**
    * 2. Aggregate summary metrics for Sales Returns dashboard / top cards
    */
@@ -48,7 +46,6 @@ export class SalesReturnService {
       receipt,
     };
   }
-
   /**
    * 4. List / search / filter sales returns
    */
@@ -68,7 +65,6 @@ export class SalesReturnService {
       receipt,
     };
   }
-
   /**
    * 6. Update draft sales return
    */
@@ -87,7 +83,6 @@ export class SalesReturnService {
   async confirmSalesReturn(businessId: string, id: string, userId?: string) {
     return this.repo.confirmSalesReturn(businessId, id, userId);
   }
-
   /**
    * 8. Cancel sales return (Reverses restocked inventory & restores customer balance)
    */
